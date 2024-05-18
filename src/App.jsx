@@ -16,14 +16,22 @@ function App() {
       <MenuNav />
       <Routes>
         <Route exact path="/" element={<Inicio></Inicio>}></Route>
+        <Route exact path="/agregar" element={<Agregar></Agregar>}></Route>
         <Route
           exact
-          path="/agregar"
-          element={<Agregar></Agregar>}
+          path="/preguntas"
+          element={<Preguntas></Preguntas>}
         ></Route>
-         <Route exact path="/preguntas" element={<Preguntas></Preguntas>}></Route>
-         <Route exact path="/preguntas/:nivel" element={<Preguntas></Preguntas>}></Route>
-         <Route exact path="/preguntas/editar/:id" element={<Editar></Editar>}></Route>
+        <Route
+          exact
+          path="/preguntas/:nivel"
+          element={<Preguntas></Preguntas>}
+        ></Route>
+        <Route
+          exact
+          path="/preguntas/editar/:id"
+          element={<Editar></Editar>}
+        ></Route>
         <Route exact path="/jugar" element={<Jugar></Jugar>}></Route>
         <Route exact path="/jugar/:nivel" element={<Jugar></Jugar>}></Route>
         <Route exact path="*" element={<Error404></Error404>}></Route>

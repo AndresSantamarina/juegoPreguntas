@@ -80,8 +80,9 @@ const Agregar = () => {
                     message: "La pregunta debe tener como mínimo 5 caracteres",
                   },
                   maxLength: {
-                    value: 50,
-                    message: "La pregunta debe tener como máximo 50 caracteres",
+                    value: 150,
+                    message:
+                      "La pregunta debe tener como máximo 150 caracteres",
                   },
                 })}
               />
@@ -97,12 +98,12 @@ const Agregar = () => {
                 {...register("opcionUno", {
                   required: "La opción es obligatoria",
                   minLength: {
-                    value: 5,
-                    message: "La opción debe tener como mínimo 5 caracteres",
+                    value: 1,
+                    message: "La opción debe tener como mínimo 1 caracter",
                   },
                   maxLength: {
-                    value: 50,
-                    message: "La opción debe tener como máximo 50 caracteres",
+                    value: 100,
+                    message: "La opción debe tener como máximo 100 caracteres",
                   },
                 })}
               />
@@ -118,12 +119,12 @@ const Agregar = () => {
                 {...register("opcionDos", {
                   required: "La opción es obligatoria",
                   minLength: {
-                    value: 5,
-                    message: "La opción debe tener como mínimo 5 caracteres",
+                    value: 1,
+                    message: "La opción debe tener como mínimo 1 caracter",
                   },
                   maxLength: {
-                    value: 50,
-                    message: "La opción debe tener como máximo 50 caracteres",
+                    value: 100,
+                    message: "La opción debe tener como máximo 100 caracteres",
                   },
                 })}
               />
@@ -139,12 +140,12 @@ const Agregar = () => {
                 {...register("opcionTres", {
                   required: "La opción es obligatoria",
                   minLength: {
-                    value: 5,
-                    message: "La opción debe tener como mínimo 5 caracteres",
+                    value: 1,
+                    message: "La opción debe tener como mínimo 1 caracter",
                   },
                   maxLength: {
-                    value: 50,
-                    message: "La opción debe tener como máximo 50 caracteres",
+                    value: 100,
+                    message: "La opción debe tener como máximo 100 caracteres",
                   },
                 })}
               />
@@ -160,12 +161,12 @@ const Agregar = () => {
                 {...register("opcionCorrecta", {
                   required: "La opción es obligatoria",
                   minLength: {
-                    value: 5,
-                    message: "La opción debe tener como mínimo 5 caracteres",
+                    value: 1,
+                    message: "La opción debe tener como mínimo 1 caracter",
                   },
                   maxLength: {
-                    value: 50,
-                    message: "La opción debe tener como máximo 50 caracteres",
+                    value: 100,
+                    message: "La opción debe tener como máximo 100 caracteres",
                   },
                 })}
               />

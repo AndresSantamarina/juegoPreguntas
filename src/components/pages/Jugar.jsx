@@ -3,6 +3,8 @@ import CardPregunta from "../CardPregunta";
 import { useNavigate, useParams } from "react-router-dom";
 import { listarPreguntasPorNivel, obtenerNiveles } from "../../helpers/queries";
 import { useEffect, useState } from "react";
+import winSound from "../../assets/win.mp3";
+import loseSound from "../../assets/lose.mp3";
 
 const Jugar = () => {
   const { nivel } = useParams();
@@ -10,6 +12,7 @@ const Jugar = () => {
 
   const [preguntas, setPreguntas] = useState([]);
   const [niveles, setNiveles] = useState([]);
+  const [respuestaCorrecta, setRespuestaCorrecta] = useState(null);
 
   useEffect(() => {
     listarPreguntas();
@@ -37,6 +40,19 @@ const Jugar = () => {
     }
   };
 
+  const handleSelectOption = (opcion, index) => {
+    if (opcion.correcta) {
+      setRespuestaCorrecta(index);
+      // Reproducir sonido de respuesta correcta
+      const audioCorrecto = new Audio(winSound);
+      audioCorrecto.play();
+    } else {
+      // Reproducir sonido de respuesta incorrecta
+      const audioIncorrecto = new Audio(loseSound);
+      audioIncorrecto.play();
+    }
+  };
+
   return (
     <Container className="mainSection">
       <section className="my-5">
@@ -54,9 +70,14 @@ const Jugar = () => {
           </Button>
         ))}
         <section>
-        {preguntas.map((pregunta) => (
-          <CardPregunta key={pregunta._id} pregunta={pregunta}></CardPregunta>
-        ))}
+          {preguntas.map((pregunta, index) => (
+            <CardPregunta
+              key={pregunta._id}
+              pregunta={pregunta}
+              respuestaCorrecta={respuestaCorrecta === index ? index : null}
+              onSelectOption={(opcion) => handleSelectOption(opcion, index)}
+            ></CardPregunta>
+          ))}
         </section>
       </section>
     </Container>

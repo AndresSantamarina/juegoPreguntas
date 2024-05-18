@@ -9,15 +9,15 @@ const Preguntas = () => {
   const navigate = useNavigate();
 
   const [preguntas, setPreguntas] = useState([]);
-  const [niveles, setNiveles] = useState([])
+  const [niveles, setNiveles] = useState([]);
 
   useEffect(() => {
     listarPreguntas();
   }, [nivel]);
 
-  useEffect(()=>{
-    cargarNiveles()
-  }, [nivel])
+  useEffect(() => {
+    cargarNiveles();
+  }, [nivel]);
 
   const listarPreguntas = async () => {
     try {
@@ -28,14 +28,14 @@ const Preguntas = () => {
     }
   };
 
-  const cargarNiveles = async()=>{
+  const cargarNiveles = async () => {
     try {
-        const respuesta = await obtenerNiveles()
-        setNiveles(respuesta)
+      const respuesta = await obtenerNiveles();
+      setNiveles(respuesta);
     } catch (error) {
-        console.error(error)
+      console.error(error);
     }
-  }
+  };
 
   return (
     <Container className="mainSection">
@@ -44,13 +44,23 @@ const Preguntas = () => {
         <h4 className="text-center my-3">
           Editar o eliminar preguntas según el nivel
         </h4>
-        {niveles.map((nivel)=>(
-            <Button className="btn btn-dark m-2" key={nivel} onClick={()=> navigate(`/preguntas/${nivel}`)}>Nivel {nivel}</Button>
+        {niveles.map((nivel) => (
+          <Button
+            className="btn btn-dark m-2"
+            key={nivel}
+            onClick={() => navigate(`/preguntas/${nivel}`)}
+          >
+            Nivel {nivel}
+          </Button>
         ))}
       </section>
       <section className="my-5">
         {preguntas.map((pregunta) => (
-          <CardPreguntaEditDelete key={pregunta._id} pregunta={pregunta} setPreguntas={setPreguntas}></CardPreguntaEditDelete>
+          <CardPreguntaEditDelete
+            key={pregunta._id}
+            pregunta={pregunta}
+            setPreguntas={setPreguntas}
+          ></CardPreguntaEditDelete>
         ))}
       </section>
     </Container>
