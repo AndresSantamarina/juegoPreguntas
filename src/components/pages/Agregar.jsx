@@ -38,7 +38,7 @@ const Agregar = () => {
     <Container className="mainSection">
       <h1 className="text-center my-5">AGREGAR</h1>
       <section>
-        <h3 className="my-3">Agregar preguntas</h3>
+        <h4 className="text-center my-3">Agregar preguntas</h4>
         <div className="d-flex justify-content-center my-5">
           <Form className="w-50" onSubmit={handleSubmit(crearPregunta)}>
             <FormGroup className="mb-3" controlId="formNivel">
@@ -154,10 +154,10 @@ const Agregar = () => {
               </Form.Text>
             </Form.Group>
             <Form.Group className="mb-3" controlId="formOpcionCorrecta">
-              <Form.Label>Opción Correcta</Form.Label>
+              <Form.Label>Respuesta Correcta</Form.Label>
               <Form.Control
                 type="text"
-                placeholder="Opción correcta"
+                placeholder="Respuesta correcta"
                 {...register("opcionCorrecta", {
                   required: "La opción es obligatoria",
                   minLength: {
@@ -175,7 +175,7 @@ const Agregar = () => {
               </Form.Text>
             </Form.Group>
             <div className="text-center">
-              <Button variant="primary" type="submit">
+              <Button variant="dark" type="submit">
                 Agregar
               </Button>
             </div>

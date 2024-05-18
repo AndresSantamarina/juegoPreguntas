@@ -40,17 +40,17 @@ const CardPregunta = ({ pregunta, respuestaCorrecta, onSelectOption }) => {
         return "danger";
       }
     }
-    return "primary";
+    return "dark";
   };
 
   return (
     <div className="my-5">
       <div className="cardContainer">
-        <p>{pregunta.pregunta}</p>
+        <p className="fw-bold">{pregunta.pregunta}</p>
         <Container>
           <Row className="text-center">
             {opciones.map((opcion, index) => (
-              <Col key={index}>
+              <Col key={index} className="my-4">
                 <p>{opcion.text}</p>
                 <Button
                   variant={getButtonVariant(opcion)}

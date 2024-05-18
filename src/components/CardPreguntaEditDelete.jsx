@@ -1,7 +1,10 @@
 import { Button, Col, Container, Row } from "react-bootstrap";
 import { Link } from "react-router-dom";
 import Swal from "sweetalert2";
-import { eliminarPreguntaAPI, listarPreguntasPorNivel } from "../helpers/queries";
+import {
+  eliminarPreguntaAPI,
+  listarPreguntasPorNivel,
+} from "../helpers/queries";
 
 const CardPreguntaEditDelete = ({ pregunta, setPreguntas }) => {
   const borrarPregunta = () => {
@@ -22,7 +25,7 @@ const CardPreguntaEditDelete = ({ pregunta, setPreguntas }) => {
             title: "Pregunta eliminada!",
             text: `La pregunta fue eliminada correctamente`,
             icon: "success",
-          }); 
+          });
           const listarPreguntas = await listarPreguntasPorNivel();
           setPreguntas(listarPreguntas);
         } else {
@@ -39,19 +42,19 @@ const CardPreguntaEditDelete = ({ pregunta, setPreguntas }) => {
   return (
     <div className="my-5">
       <div className="cardContainer">
-        <p>{pregunta.pregunta}</p>
+        <p className="fw-bold">{pregunta.pregunta}</p>
         <Container>
           <Row className="text-center">
-            <Col>
+            <Col className="my-4">
               <p>{pregunta.opcionUno}</p>
             </Col>
-            <Col>
+            <Col className="my-4">
               <p>{pregunta.opcionDos}</p>
             </Col>
-            <Col>
+            <Col className="my-4">
               <p>{pregunta.opcionTres}</p>
             </Col>
-            <Col>
+            <Col className="my-4">
               <p>{pregunta.opcionCorrecta}</p>
             </Col>
           </Row>
