@@ -1,24 +1,66 @@
-import { Button, Container } from 'react-bootstrap';
+import { Button, Container } from "react-bootstrap";
+import CardPregunta from "../CardPregunta";
+import { useNavigate, useParams } from "react-router-dom";
+import { listarPreguntasPorNivel, obtenerNiveles } from "../../helpers/queries";
+import { useEffect, useState } from "react";
 
 const Jugar = () => {
-    return (
-        <Container className='mainSection'>
-            <section className='my-5'>
-                <h1 className='text-center my-3'>Juego</h1>
-                <h4 className='text-center my-3'>Elija el nivel en el que quiere jugar</h4>
-              <Button className='btn btn-dark m-2'>Nivel 1</Button>  
-              <Button className='btn btn-dark m-2'>Nivel 2</Button>  
-              <Button className='btn btn-dark m-2'>Nivel 3</Button>  
-              <Button className='btn btn-dark m-2'>Nivel 4</Button>  
-              <Button className='btn btn-dark m-2'>Nivel 5</Button>  
-              <Button className='btn btn-dark m-2'>Nivel 6</Button>  
-              <Button className='btn btn-dark m-2'>Nivel 7</Button>  
-              <Button className='btn btn-dark m-2'>Nivel 8</Button>  
-              <Button className='btn btn-dark m-2'>Nivel 9</Button>  
-              <Button className='btn btn-dark m-2'>Nivel 10</Button>  
-            </section>
-        </Container>
-    );
+  const { nivel } = useParams();
+  const navigate = useNavigate();
+
+  const [preguntas, setPreguntas] = useState([]);
+  const [niveles, setNiveles] = useState([]);
+
+  useEffect(() => {
+    listarPreguntas();
+  }, [nivel]);
+
+  useEffect(() => {
+    cargarNiveles();
+  }, [nivel]);
+
+  const listarPreguntas = async () => {
+    try {
+      const respuesta = await listarPreguntasPorNivel(nivel);
+      setPreguntas(respuesta);
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  const cargarNiveles = async () => {
+    try {
+      const respuesta = await obtenerNiveles();
+      setNiveles(respuesta);
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  return (
+    <Container className="mainSection">
+      <section className="my-5">
+        <h1 className="text-center my-3">Juego</h1>
+        <h4 className="text-center my-3">
+          Elija el nivel en el que quiere jugar
+        </h4>
+        {niveles.map((nivel) => (
+          <Button
+            className="btn btn-dark m-2"
+            key={nivel}
+            onClick={() => navigate(`/jugar/${nivel}`)}
+          >
+            Nivel {nivel}
+          </Button>
+        ))}
+        <section>
+        {preguntas.map((pregunta) => (
+          <CardPregunta key={pregunta._id} pregunta={pregunta}></CardPregunta>
+        ))}
+        </section>
+      </section>
+    </Container>
+  );
 };
 
 export default Jugar;

@@ -1,7 +1,6 @@
 import { Container, FormGroup } from "react-bootstrap";
 import Button from "react-bootstrap/Button";
 import Form from "react-bootstrap/Form";
-import CardPregunta from "../CardPregunta";
 import { useParams } from "react-router-dom";
 import { crearPreguntaAPI } from "../../helpers/queries";
 import { useForm } from "react-hook-form";
@@ -37,7 +36,7 @@ const Agregar = () => {
 
   return (
     <Container className="mainSection">
-      <h1 className="text-center my-5">Configurar el juego</h1>
+      <h1 className="text-center my-5">AGREGAR</h1>
       <section>
         <h3 className="my-3">Agregar preguntas</h3>
         <div className="d-flex justify-content-center my-5">
@@ -53,16 +52,16 @@ const Agregar = () => {
                 <option value="">
                   Seleccione el nivel al que quiere agregar la pregunta
                 </option>
-                <option value={1}>Uno</option>
-                <option value={2}>Dos</option>
-                <option value={3}>Tres</option>
-                <option value={4}>Cuatro</option>
-                <option value={5}>Cinco</option>
-                <option value={6}>Seis</option>
-                <option value={7}>Siete</option>
-                <option value={8}>Ocho</option>
-                <option value={9}>Nueve</option>
-                <option value={10}>Diez</option>
+                <option value="1">Uno</option>
+                <option value="2">Dos</option>
+                <option value="3">Tres</option>
+                <option value="4">Cuatro</option>
+                <option value="5">Cinco</option>
+                <option value="6">Seis</option>
+                <option value="7">Siete</option>
+                <option value="8">Ocho</option>
+                <option value="9">Nueve</option>
+                <option value="10">Diez</option>
               </Form.Select>
               <Form.Text className="text-danger">
                 {errors.nivel?.message}
@@ -181,11 +180,6 @@ const Agregar = () => {
             </div>
           </Form>
         </div>
-      </section>
-      <section>
-        <CardPregunta></CardPregunta>
-        <CardPregunta></CardPregunta>
-        <CardPregunta></CardPregunta>
       </section>
     </Container>
   );

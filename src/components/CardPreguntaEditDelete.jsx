@@ -1,34 +1,75 @@
 import { Button, Col, Container, Row } from "react-bootstrap";
+import { Link } from "react-router-dom";
+import Swal from "sweetalert2";
+import { eliminarPreguntaAPI, listarPreguntasPorNivel } from "../helpers/queries";
 
-const CardPreguntaEditDelete = () => {
-    return (
-        <div className="my-5">
-        <div className="cardContainer">
-          <p>¿Pregunta de prueba?</p>
-          <Container>
-            <Row className="text-center">
-              <Col>
-                <p>Respuesta uno</p>
-              </Col>
-              <Col>
-                <p>Respuesta dos</p>
-              </Col>
-              <Col>
-                <p>Respuesta tres</p>
-              </Col>
-              <Col>
-                <p>Respuesta cuatro</p>
-              </Col>
-            </Row>
-            <div className="text-center">
-            <Button className="m-2" variant="warning">Editar</Button>
-            <Button className="m-2" variant="danger">Eliminar</Button>
-            </div>
-           
-          </Container>
-        </div>
+const CardPreguntaEditDelete = ({ pregunta, setPreguntas }) => {
+  const borrarPregunta = () => {
+    Swal.fire({
+      title: "Estás seguro de eliminar la pregunta?",
+      text: "No se puede revertir este proceso",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#3085d6",
+      cancelButtonColor: "#d33",
+      confirmButtonText: "Borrar",
+      cancelButtonText: "Salir",
+    }).then(async (result) => {
+      if (result.isConfirmed) {
+        const respuesta = await eliminarPreguntaAPI(pregunta._id);
+        if (respuesta.status === 200) {
+          Swal.fire({
+            title: "Pregunta eliminada!",
+            text: `La pregunta fue eliminada correctamente`,
+            icon: "success",
+          }); 
+          const listarPreguntas = await listarPreguntasPorNivel();
+          setPreguntas(listarPreguntas);
+        } else {
+          Swal.fire({
+            title: "Ocurrió un error",
+            text: `La pregunta no pudo ser eliminada`,
+            icon: "error",
+          });
+        }
+      }
+    });
+  };
+
+  return (
+    <div className="my-5">
+      <div className="cardContainer">
+        <p>{pregunta.pregunta}</p>
+        <Container>
+          <Row className="text-center">
+            <Col>
+              <p>{pregunta.opcionUno}</p>
+            </Col>
+            <Col>
+              <p>{pregunta.opcionDos}</p>
+            </Col>
+            <Col>
+              <p>{pregunta.opcionTres}</p>
+            </Col>
+            <Col>
+              <p>{pregunta.opcionCorrecta}</p>
+            </Col>
+          </Row>
+          <div className="text-center">
+            <Link
+              className="m-2 btn btn-warning"
+              to={"/preguntas/editar/" + pregunta._id}
+            >
+              Editar
+            </Link>
+            <Button className="m-2" variant="danger" onClick={borrarPregunta}>
+              Eliminar
+            </Button>
+          </div>
+        </Container>
       </div>
-    );
+    </div>
+  );
 };
 
 export default CardPreguntaEditDelete;

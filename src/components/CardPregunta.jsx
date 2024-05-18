@@ -1,26 +1,26 @@
 import { Button, Col, Container, Row } from "react-bootstrap";
 
-const CardPregunta = () => {
+const CardPregunta = ({pregunta}) => {
   return (
     <div className="my-5">
       <div className="cardContainer">
-        <p>¿Pregunta de prueba?</p>
+        <p>{pregunta.pregunta}</p>
         <Container>
           <Row className="text-center">
             <Col>
-              <p>Respuesta uno</p>
+              <p>{pregunta.opcionUno}</p>
               <Button variant="success">Elegir</Button>
             </Col>
             <Col>
-              <p>Respuesta dos</p>
+              <p>{pregunta.opcionDos}</p>
               <Button variant="success">Elegir</Button>
             </Col>
             <Col>
-              <p>Respuesta tres</p>
+              <p>{pregunta.opcionTres}</p>
               <Button variant="success">Elegir</Button>
             </Col>
             <Col>
-              <p>Respuesta cuatro</p>
+              <p>{pregunta.opcionCorrecta}</p>
               <Button variant="success">Elegir</Button>
             </Col>
           </Row>

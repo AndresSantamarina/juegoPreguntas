@@ -60,3 +60,24 @@ export const eliminarPreguntaAPI = async (id) =>{
         console.error(error)
     }
 }
+
+export const obtenerNiveles = async () => {
+    try {
+      const respuesta = await fetch(URL_Preguntas + "/" + "niveles");
+      const listaNiveles = await respuesta.json();
+      return listaNiveles;
+    } catch (error) {
+      console.error(error)
+    }
+  };
+
+export const listarPreguntasPorNivel = async (nivel)=>{
+try {
+    const respuesta = await fetch(
+        URL_Preguntas + '/' + 'nivel' + '/' + nivel
+    )
+    return await respuesta.json()
+} catch (error) {
+    console.error(error)
+}
+}
