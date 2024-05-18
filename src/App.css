@@ -1,1 +1,15 @@
-
+#root {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+  }
+  
+  .mainSection {
+    flex-grow: 1;
+  }
+  
+.cardContainer{
+  border: 3px #63dd94 solid;
+  border-radius: 20px;
+  padding: 5px;
+}
