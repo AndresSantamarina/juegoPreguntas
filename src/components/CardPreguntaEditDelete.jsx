@@ -44,18 +44,18 @@ const CardPreguntaEditDelete = ({ pregunta, setPreguntas }) => {
       <div className="cardContainer">
         <p className="fw-bold">{pregunta.pregunta}</p>
         <Container>
-          <Row className="text-center">
-            <Col className="my-4">
-              <p>{pregunta.opcionUno}</p>
+          <Row className="text-center justify-content-center align-content-center">
+            <Col className="my-4 h-100 col-6">
+              <p><span className="fw-bold">1- </span>{pregunta.opcionUno}</p>
             </Col>
-            <Col className="my-4">
-              <p>{pregunta.opcionDos}</p>
+            <Col className="my-4 h-100 col-6">
+              <p><span className="fw-bold">2- </span>{pregunta.opcionDos}</p>
             </Col>
-            <Col className="my-4">
-              <p>{pregunta.opcionTres}</p>
+            <Col className="my-4 h-100 col-6">
+              <p><span className="fw-bold">3- </span>{pregunta.opcionTres}</p>
             </Col>
-            <Col className="my-4">
-              <p>{pregunta.opcionCorrecta}</p>
+            <Col className="my-4 h-100 col-6">
+              <p><span className="fw-bold">4- </span>{pregunta.opcionCorrecta}</p>
             </Col>
           </Row>
           <div className="text-center">

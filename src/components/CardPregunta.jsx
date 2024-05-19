@@ -48,10 +48,10 @@ const CardPregunta = ({ pregunta, respuestaCorrecta, onSelectOption }) => {
       <div className="cardContainer">
         <p className="fw-bold">{pregunta.pregunta}</p>
         <Container>
-          <Row className="text-center">
+          <Row className="text-center justify-content-center align-content-center">
             {opciones.map((opcion, index) => (
-              <Col key={index} className="my-4">
-                <p>{opcion.text}</p>
+              <Col key={index} className="my-4 h-100 col-6">
+                <p><span className="fw-bold">{index + 1+")"}</span> {opcion.text}</p>
                 <Button
                   variant={getButtonVariant(opcion)}
                   onClick={() => handleSelectOption(opcion, index)}

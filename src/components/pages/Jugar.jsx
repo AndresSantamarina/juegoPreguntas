@@ -56,7 +56,7 @@ const Jugar = () => {
   };
 
   const mostrarComponente = mostrarLoader ? (
-    <div className="text-center m-5 p-3">
+    <div className="text-center m-5 p-5">
       <span className="loader"></span>
     </div>
   ) : nivelSeleccionado ? (

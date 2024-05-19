@@ -52,6 +52,7 @@ form {
   position: relative;
   overflow: hidden;
   animation: l10-0 2s infinite cubic-bezier(1, 175, 0.5, 175);
+  color: rgb(189, 0, 0);
 }
 .loader::before {
   content: "Loading";
