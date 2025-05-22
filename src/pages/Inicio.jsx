@@ -1,6 +1,5 @@
-import React from "react";
 import { Container } from "react-bootstrap";
-import imgPregunta from "../../assets/question-mark.png";
+import imgPregunta from "../assets/question-mark.png";
 
 const Inicio = () => {
   return (

@@ -1,15 +1,18 @@
 import { Button, Container } from "react-bootstrap";
-import CardPreguntaEditDelete from "../CardPreguntaEditDelete";
+import CardPregunta from "../components/CardPregunta";
 import { useNavigate, useParams } from "react-router-dom";
-import { listarPreguntasPorNivel, obtenerNiveles } from "../../helpers/queries";
+import { listarPreguntasPorNivel, obtenerNiveles } from "../helpers/queries";
 import { useEffect, useState } from "react";
+import winSound from "../assets/win.mp3";
+import loseSound from "../assets/lose.mp3";
 
-const Preguntas = () => {
+const Jugar = () => {
   const { nivel } = useParams();
   const navigate = useNavigate();
 
   const [preguntas, setPreguntas] = useState([]);
   const [niveles, setNiveles] = useState([]);
+  const [respuestaCorrecta, setRespuestaCorrecta] = useState(null);
   const [mostrarLoader, setMostrarLoader] = useState(true);
   const [nivelSeleccionado, setNivelSeleccionado] = useState(false);
 
@@ -41,8 +44,19 @@ const Preguntas = () => {
     }
   };
 
+  const handleSelectOption = (opcion, index) => {
+    if (opcion.correcta) {
+      setRespuestaCorrecta(index);
+      const audioCorrecto = new Audio(winSound);
+      audioCorrecto.play();
+    } else {
+      const audioIncorrecto = new Audio(loseSound);
+      audioIncorrecto.play();
+    }
+  };
+
   const mostrarComponente = mostrarLoader ? (
-    <div className="text-center m-5 p-3">
+    <div className="text-center m-5 p-5">
       <span className="loader"></span>
     </div>
   ) : nivelSeleccionado ? (
@@ -50,12 +64,13 @@ const Preguntas = () => {
       <p className="text-center lead">No hay preguntas en este nivel.</p>
     ) : (
       <section className="my-5">
-        {preguntas.map((pregunta) => (
-          <CardPreguntaEditDelete
+        {preguntas.map((pregunta, index) => (
+          <CardPregunta
             key={pregunta._id}
             pregunta={pregunta}
-            setPreguntas={setPreguntas}
-          ></CardPreguntaEditDelete>
+            respuestaCorrecta={respuestaCorrecta === index ? index : null}
+            onSelectOption={(opcion) => handleSelectOption(opcion, index)}
+          ></CardPregunta>
         ))}
       </section>
     )
@@ -66,15 +81,17 @@ const Preguntas = () => {
   return (
     <Container className="mainSection">
       <section className="my-5">
-        <h1 className="text-center my-5">LISTADO</h1>
-        <h4 className="text-center my-3">Editar o eliminar preguntas</h4>
+        <h1 className="text-center my-5">JUGAR</h1>
+        <h4 className="text-center my-3">
+          Elija el nivel en el que quiere jugar
+        </h4>
         <article className="my-5 text-center">
           {niveles.map((nivel) => (
             <Button
               className="btn btn-dark m-2"
               key={nivel}
               onClick={() => {
-                navigate(`/preguntas/${nivel}`);
+                navigate(`/jugar/${nivel}`);
                 setNivelSeleccionado(true);
               }}
             >
@@ -88,4 +105,4 @@ const Preguntas = () => {
   );
 };
 
-export default Preguntas;
+export default Jugar;

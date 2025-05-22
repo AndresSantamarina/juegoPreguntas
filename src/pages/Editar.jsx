@@ -2,7 +2,7 @@ import { Container, FormGroup } from "react-bootstrap";
 import Button from "react-bootstrap/Button";
 import Form from "react-bootstrap/Form";
 import { useNavigate, useParams } from "react-router-dom";
-import { editarPreguntaAPI, obtenerPreguntaAPI } from "../../helpers/queries";
+import { editarPreguntaAPI, obtenerPreguntaAPI } from "../helpers/queries";
 import { useForm } from "react-hook-form";
 import Swal from "sweetalert2";
 import { useEffect } from "react";
