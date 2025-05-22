@@ -5,6 +5,8 @@ import { useParams } from "react-router-dom";
 import { crearPreguntaAPI } from "../helpers/queries";
 import { useForm } from "react-hook-form";
 import Swal from "sweetalert2";
+import { useAuth } from "../context/AuthContext";
+import { useContext } from "react";
 
 const Agregar = () => {
   const {
@@ -15,24 +17,39 @@ const Agregar = () => {
   } = useForm();
 
   const { id } = useParams();
+  const { user } = useAuth();
 
-  const crearPregunta = async (pregunta) => {
-    const respuesta = await crearPreguntaAPI(pregunta);
-    if (respuesta.status === 201) {
-      Swal.fire({
-        title: "Pregunta creada",
-        text: `La pregunta fue creada correctamente`,
-        icon: "success",
-      });
-      reset();
-    } else {
-      Swal.fire({
-        title: "Ocurrió un error",
-        text: `La pregunta no pudo ser creada`,
-        icon: "error",
-      });
+    const crearPregunta = async (pregunta) => {
+    try {
+        if (!user || !user.id) {
+            throw new Error("Debes iniciar sesión para crear preguntas");
+        }
+
+        const preguntaConUsuario = {
+            ...pregunta,
+            usuario: user.id
+        };
+
+        const data = await crearPreguntaAPI(preguntaConUsuario);
+        
+        // Si llegamos aquí, la pregunta se creó correctamente
+        Swal.fire({
+            title: "Éxito",
+            text: "Pregunta creada correctamente",
+            icon: "success"
+        });
+        reset();
+        
+    } catch (error) {
+        console.error("Error al crear pregunta:", error);
+        
+        Swal.fire({
+            title: "Error",
+            text: error.message || "Error al crear la pregunta",
+            icon: "error"
+        });
     }
-  };
+};
 
   return (
     <Container className="mainSection">

@@ -1,7 +1,7 @@
 import { Button, Container } from "react-bootstrap";
 import CardPreguntaEditDelete from "../components/CardPreguntaEditDelete";
 import { useNavigate, useParams } from "react-router-dom";
-import { listarPreguntasPorNivel, obtenerNiveles } from "../helpers/queries";
+import { listarPreguntasPorNivelUsuario, obtenerNiveles } from "../helpers/queries";
 import { useEffect, useState } from "react";
 
 const Preguntas = () => {
@@ -13,24 +13,35 @@ const Preguntas = () => {
   const [mostrarLoader, setMostrarLoader] = useState(true);
   const [nivelSeleccionado, setNivelSeleccionado] = useState(false);
 
-  useEffect(() => {
+ useEffect(() => {
+  if (nivel) {
     listarPreguntas();
-  }, [nivel]);
+    setNivelSeleccionado(true);
+  } else {
+    setPreguntas([]);           // limpiar preguntas
+    setNivelSeleccionado(false);
+    setMostrarLoader(false);    // ya no muestres loader porque no hay nivel
+  }
+}, [nivel]);
 
   useEffect(() => {
     cargarNiveles();
   }, [nivel]);
 
-  const listarPreguntas = async () => {
-    try {
-      setMostrarLoader(true);
-      const respuesta = await listarPreguntasPorNivel(nivel);
-      setPreguntas(respuesta);
-      setMostrarLoader(false);
-    } catch (error) {
-      console.error(error);
-    }
-  };
+ const listarPreguntas = async () => {
+  if (!nivel) return;  // no llamar sin nivel
+
+  try {
+    setMostrarLoader(true);
+    const respuesta = await listarPreguntasPorNivelUsuario(nivel);
+    setPreguntas(respuesta);
+  } catch (error) {
+    console.error(error);
+    setPreguntas([]);  // limpiar si falla
+  } finally {
+    setMostrarLoader(false);
+  }
+};
 
   const cargarNiveles = async () => {
     try {
@@ -52,9 +63,10 @@ const Preguntas = () => {
       <section className="my-5">
         {preguntas.map((pregunta) => (
           <CardPreguntaEditDelete
-            key={pregunta._id}
+            key={pregunta.id}
             pregunta={pregunta}
             setPreguntas={setPreguntas}
+            nivel={nivel}
           ></CardPreguntaEditDelete>
         ))}
       </section>

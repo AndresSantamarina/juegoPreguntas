@@ -3,13 +3,13 @@ import { Link } from "react-router-dom";
 import Swal from "sweetalert2";
 import {
   eliminarPreguntaAPI,
-  listarPreguntasPorNivel,
-} from "../helpers/queries";
+  listarPreguntasPorNivelUsuario,
+} from "../helpers/queries.js";
 
-const CardPreguntaEditDelete = ({ pregunta, setPreguntas }) => {
+const CardPreguntaEditDelete = ({ pregunta, setPreguntas, nivel }) => {
   const borrarPregunta = () => {
     Swal.fire({
-      title: "Estás seguro de eliminar la pregunta?",
+      title: "¿Estás seguro de eliminar la pregunta?",
       text: "No se puede revertir este proceso",
       icon: "warning",
       showCancelButton: true,
@@ -19,25 +19,32 @@ const CardPreguntaEditDelete = ({ pregunta, setPreguntas }) => {
       cancelButtonText: "Salir",
     }).then(async (result) => {
       if (result.isConfirmed) {
-        const respuesta = await eliminarPreguntaAPI(pregunta._id);
-        if (respuesta.status === 200) {
+        try {
+          const respuesta = await eliminarPreguntaAPI(pregunta._id);
+
           Swal.fire({
             title: "Pregunta eliminada!",
-            text: `La pregunta fue eliminada correctamente`,
+            text: respuesta.message || "La pregunta fue eliminada correctamente",
             icon: "success",
           });
-          const listarPreguntas = await listarPreguntasPorNivel();
-          setPreguntas(listarPreguntas);
-        } else {
+
+          // Listar nuevamente con el nivel que se recibe como prop
+          const preguntasActualizadas = await listarPreguntasPorNivelUsuario(nivel);
+          setPreguntas(preguntasActualizadas);
+
+        } catch (error) {
           Swal.fire({
             title: "Ocurrió un error",
-            text: `La pregunta no pudo ser eliminada`,
+            text: error.message || "La pregunta no pudo ser eliminada",
             icon: "error",
           });
         }
       }
     });
   };
+
+  console.log("Pregunta ID:", pregunta._id);
+
 
   return (
     <div className="my-5">

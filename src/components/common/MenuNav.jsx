@@ -37,7 +37,7 @@ const MenuNav = () => {
                 <Nav.Link as={Link} to="/jugar">
                   JUGAR
                 </Nav.Link>
-                <Nav.Link onClick={logout}>
+                <Nav.Link as={Link} to="/" onClick={logout}>
                   CERRAR SESIÓN
                 </Nav.Link>
               </>

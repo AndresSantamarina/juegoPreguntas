@@ -1,12 +1,12 @@
-// src/context/AuthContext.jsx
 import { createContext, useContext, useState } from "react";
 import axios from "axios";
 const URL_API = import.meta.env.VITE_API_URI;
 
-
 export const AuthContext = createContext();
 
 export const useAuth = () => useContext(AuthContext);
+
+
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(() => {
@@ -16,15 +16,32 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (credentials) => {
     try {
-        console.log("Credenciales que se envían al backend:", credentials);
+      console.log("Credenciales que se envían al backend:", credentials);
       const res = await axios.post(`${URL_API}/login`, credentials);
-    
-      setUser(res.data.user);
-      sessionStorage.setItem("user", JSON.stringify(res.data.user));
+      
+      // Verifica la estructura de la respuesta
+      console.log("Respuesta completa del backend:", res.data);
+      
+      if (!res.data.user || !res.data.user.id) {
+        throw new Error("La respuesta del servidor no incluye datos de usuario válidos");
+      }
+
+      const userData = {
+        id: res.data.user.id,
+        name: res.data.user.name,
+        // Agrega otros campos necesarios
+      };
+
+      setUser(userData);
+      sessionStorage.setItem("user", JSON.stringify(userData));
       sessionStorage.setItem("token", res.data.token);
       return { success: true };
     } catch (error) {
-      return { success: false, message: error.response?.data?.message || "Error al iniciar sesión" };
+      console.error("Error en login:", error);
+      return { 
+        success: false, 
+        message: error.response?.data?.message || error.message || "Error al iniciar sesión" 
+      };
     }
   };
 
@@ -43,6 +60,7 @@ export const AuthProvider = ({ children }) => {
   const logout = () => {
     setUser(null);
     sessionStorage.clear();
+
   };
 
   return (

@@ -20,26 +20,26 @@ const Editar = () => {
 
   const { id } = useParams();
 
-  const cargarDatosPregunta = async () => {
-    try {
-      const respuesta = await obtenerPreguntaAPI(id);
-      if (respuesta.status === 200) {
-        const preguntaEncontrada = await respuesta.json();
-        setValue("pregunta", preguntaEncontrada.pregunta);
-        setValue("opcionUno", preguntaEncontrada.opcionUno);
-        setValue("opcionDos", preguntaEncontrada.opcionDos);
-        setValue("opcionTres", preguntaEncontrada.opcionTres);
-        setValue("opcionCorrecta", preguntaEncontrada.opcionCorrecta);
-        setValue("nivel", preguntaEncontrada.nivel);
-      }
-    } catch (error) {
-      console.error(error);
-    }
-  };
+ const cargarDatosPregunta = async () => {
+  try {
+    const preguntaEncontrada = await obtenerPreguntaAPI(id); // ya el JSON
+    // Seteamos los valores con reset
+    reset({
+      pregunta: preguntaEncontrada.pregunta,
+      opcionUno: preguntaEncontrada.opcionUno,
+      opcionDos: preguntaEncontrada.opcionDos,
+      opcionTres: preguntaEncontrada.opcionTres,
+      opcionCorrecta: preguntaEncontrada.opcionCorrecta,
+      nivel: preguntaEncontrada.nivel,
+    });
+  } catch (error) {
+    console.error(error);
+  }
+};
 
-  useEffect(() => {
-    cargarDatosPregunta();
-  }, []);
+useEffect(() => {
+  if (id) cargarDatosPregunta();
+}, [id]);
 
   const editarPregunta = async (pregunta) => {
     const respuesta = await editarPreguntaAPI(pregunta, id);

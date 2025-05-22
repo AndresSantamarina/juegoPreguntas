@@ -2,7 +2,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Form, Button, Alert, Container } from "react-bootstrap";
-import { loginUser } from "../services/authService";
 import { useAuth } from "../context/AuthContext";
 
 const LoginForm = () => {
@@ -14,12 +13,20 @@ const LoginForm = () => {
 
 const handleSubmit = async (e) => {
   e.preventDefault();
-  const res = await login({ name, password }); // ✅ esta función ya hace la llamada al backend
+  setError(""); // Limpia errores anteriores
+  
+  if (!name || !password) {
+    setError("Nombre y contraseña son requeridos");
+    return;
+  }
+
+  const res = await login({ name, password });
 
   if (res.success) {
-    navigate("/dashboard");
+    navigate("/");
   } else {
-    setError(res.message);
+    setError(res.message || "Error desconocido al iniciar sesión");
+    console.error("Error de login:", res.message);
   }
 };
 

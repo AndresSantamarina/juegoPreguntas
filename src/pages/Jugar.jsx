@@ -1,46 +1,113 @@
 import { Button, Container } from "react-bootstrap";
 import CardPregunta from "../components/CardPregunta";
 import { useNavigate, useParams } from "react-router-dom";
-import { listarPreguntasPorNivel, obtenerNiveles } from "../helpers/queries";
+import {
+  listarPreguntasPorNivelUsuario,
+  obtenerNiveles,
+} from "../helpers/queries.js";
 import { useEffect, useState } from "react";
 import winSound from "../assets/win.mp3";
 import loseSound from "../assets/lose.mp3";
+import { useAuth } from "../../src/context/AuthContext.jsx"; // Añadir import
+import Swal from "sweetalert2";
 
 const Jugar = () => {
-  const { nivel } = useParams();
+   const { nivel: nivelParam } = useParams(); // Cambiado a nivelParam para evitar conflicto
   const navigate = useNavigate();
+  const { user } = useAuth(); // Obtener usuario autenticado
 
   const [preguntas, setPreguntas] = useState([]);
   const [niveles, setNiveles] = useState([]);
   const [respuestaCorrecta, setRespuestaCorrecta] = useState(null);
   const [mostrarLoader, setMostrarLoader] = useState(true);
-  const [nivelSeleccionado, setNivelSeleccionado] = useState(false);
+  const [nivelSeleccionado, setNivelSeleccionado] = useState(!!nivelParam); // Inicializa con valor booleano
 
+ // Efecto único para cargar datos
   useEffect(() => {
-    listarPreguntas();
-  }, [nivel]);
+    const cargarDatos = async () => {
+      try {
+        setMostrarLoader(true);
+        
+        // Verificar autenticación primero
+        if (!user?.id) {
+          throw new Error("Por favor inicia sesión");
+        }
 
-  useEffect(() => {
-    cargarNiveles();
-  }, [nivel]);
+        // Cargar niveles y preguntas
+        const [nivelesData, preguntasData] = await Promise.all([
+          obtenerNiveles(),
+          nivelParam ? listarPreguntasPorNivelUsuario(nivelParam) : Promise.resolve([])
+        ]);
+        
+        setNiveles(nivelesData);
+        if (nivelParam) setPreguntas(preguntasData);
+        
+      } catch (error) {
+        console.error("Error al cargar datos:", error);
+        if (error.message.includes("401") || error.message.includes("autenticado")) {
+          Swal.fire({
+            title: "Sesión expirada",
+            text: "Por favor, inicia sesión nuevamente",
+            icon: "warning"
+          });
+          navigate("/login");
+        } else {
+          Swal.fire({
+            title: "Error",
+            text: error.message || "Error al cargar datos",
+            icon: "error"
+          });
+        }
+        setNiveles([]);
+        setPreguntas([]);
+      } finally {
+        setMostrarLoader(false);
+      }
+    };
 
-  const listarPreguntas = async () => {
+    cargarDatos();
+  }, [nivelParam, user?.id]);
+
+  const listarPreguntas = async (nivel) => {  // Añadir parámetro nivel
     try {
-      setMostrarLoader(true);
-      const respuesta = await listarPreguntasPorNivel(nivel);
-      setPreguntas(respuesta);
-      setMostrarLoader(false);
+        setMostrarLoader(true);
+
+        if (!user || !user.id) {
+            throw new Error("Usuario no autenticado");
+        }
+
+        if (!nivel) {
+            throw new Error("Nivel no especificado");
+        }
+
+        const respuesta = await listarPreguntasPorNivelUsuario(nivel);
+        setPreguntas(respuesta);
     } catch (error) {
-      console.error(error);
+        console.error("Error al listar preguntas:", error);
+        if (error.message.includes("401")) {
+            Swal.fire({
+                title: "Sesión expirada",
+                text: "Por favor, inicia sesión nuevamente",
+                icon: "warning",
+            });
+            navigate("/login");
+        } else {
+            setPreguntas([]);
+        }
+    } finally {
+        setMostrarLoader(false);
     }
-  };
+};
 
   const cargarNiveles = async () => {
     try {
+      if (!user || !user.id) return;
+
       const respuesta = await obtenerNiveles();
       setNiveles(respuesta);
     } catch (error) {
-      console.error(error);
+      console.error("Error al cargar niveles:", error);
+      setNiveles([]); // Mostrar lista vacía si hay error
     }
   };
 
@@ -66,7 +133,7 @@ const Jugar = () => {
       <section className="my-5">
         {preguntas.map((pregunta, index) => (
           <CardPregunta
-            key={pregunta._id}
+            key={pregunta.id}
             pregunta={pregunta}
             respuestaCorrecta={respuestaCorrecta === index ? index : null}
             onSelectOption={(opcion) => handleSelectOption(opcion, index)}
