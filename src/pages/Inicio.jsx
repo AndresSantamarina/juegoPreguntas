@@ -9,8 +9,7 @@ const Inicio = () => {
         <p>
           ¡Bienvenido al <span className="fw-bold">Juego de Preguntas</span>!
           Aquí podrás disfrutar de un emocionante juego en donde tendrás que
-          elegir la respuesta correcta. Claramente es una idea original y no un
-          plagio.
+          elegir la respuesta correcta.
         </p>
         <p>
           ¡Demuestra tus conocimientos y desafía a tus amigos para ver quién es
