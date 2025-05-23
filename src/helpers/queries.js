@@ -2,7 +2,6 @@ import axios from "axios";
 
 const URL_Preguntas = import.meta.env.VITE_API_PREGUNTAS;
 
-// Asegurarse de enviar el token en las solicitudes
 const getAuthHeaders = () => {
   const token = sessionStorage.getItem('token');
   if (!token) {
@@ -15,10 +14,9 @@ const getAuthHeaders = () => {
   };
 };
 
-// Leer preguntas SOLO del usuario
 export const leerPreguntasUsuarioAPI = async () => {
     try {
-        const respuesta = await fetch(`${URL_Preguntas}`, {  // Cambiado de URL_Preguntas a `${URL_Preguntas}`
+        const respuesta = await fetch(`${URL_Preguntas}`, {
             headers: getAuthHeaders()
         });
         if (!respuesta.ok) throw new Error('Error al leer las preguntas del usuario');
@@ -29,7 +27,6 @@ export const leerPreguntasUsuarioAPI = async () => {
     }
 };
 
-// Obtener una pregunta individual (no cambia)
 export const obtenerPreguntaAPI = async (id) => {
     try {
         const token = sessionStorage.getItem('token');
@@ -46,8 +43,6 @@ export const obtenerPreguntaAPI = async (id) => {
     }
 };
 
-
-// Crear pregunta, asegurando que se envíe userId
 export const crearPreguntaAPI = async (preguntaNueva) => {
     try {
         const token = sessionStorage.getItem('token');
@@ -61,20 +56,19 @@ export const crearPreguntaAPI = async (preguntaNueva) => {
             body: JSON.stringify(preguntaNueva)
         });
 
-        const data = await respuesta.json(); // Siempre parsea la respuesta primero
+        const data = await respuesta.json();
         
         if (!respuesta.ok) {
             throw new Error(data.message || 'Error al crear la pregunta');
         }
         
-        return data; // Devuelve los datos parseados
+        return data;
     } catch (error) {
         console.error("Error en crearPreguntaAPI:", error);
         throw error;
     }
 };
 
-// Editar pregunta, asumiendo que la API valida ownership
 export const editarPreguntaAPI = async (preguntaModificada, id) => {
   try {
     const respuesta = await fetch(`${URL_Preguntas}/${id}`, {
@@ -83,7 +77,6 @@ export const editarPreguntaAPI = async (preguntaModificada, id) => {
       body: JSON.stringify(preguntaModificada)
     });
     if (!respuesta.ok) throw new Error(`Error al editar la pregunta con id ${id}`);
-    // Aquí retornamos la respuesta completa
     return respuesta; 
   } catch (error) {
     console.error(error);
@@ -91,8 +84,6 @@ export const editarPreguntaAPI = async (preguntaModificada, id) => {
   }
 };
 
-
-// Eliminar pregunta, la API debería validar userId
 export const eliminarPreguntaAPI = async (id) => {
   try {
     const token = sessionStorage.getItem("token");
@@ -114,7 +105,6 @@ export const eliminarPreguntaAPI = async (id) => {
       throw new Error(errorMsg);
     }
 
-    // Asumiendo que la API devuelve un objeto con { message: "..." } al eliminar exitosamente
     if (respuesta.status === 204) return { message: "Pregunta eliminada correctamente", status: 204 };
 
     return await respuesta.json();
@@ -125,8 +115,6 @@ export const eliminarPreguntaAPI = async (id) => {
   }
 };
 
-
-// Obtener niveles (protegido por autenticación)
 export const obtenerNiveles = async () => {
   try {
     const token = sessionStorage.getItem("token");
@@ -146,8 +134,6 @@ export const obtenerNiveles = async () => {
   }
 };
 
-
-// Listar preguntas por nivel y usuario (versión corregida)
 export const listarPreguntasPorNivelUsuario = async (nivel) => {
     try {
         if (!nivel) throw new Error('Nivel no especificado');

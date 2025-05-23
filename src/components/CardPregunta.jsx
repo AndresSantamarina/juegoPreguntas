@@ -46,18 +46,23 @@ const CardPregunta = ({ pregunta, respuestaCorrecta, onSelectOption }) => {
   return (
     <div className="my-5">
       <div className="cardContainer">
-        <p className="fw-bold">{pregunta.pregunta}</p>
+        <p className="fw-bold fs-4 text-center">{pregunta.pregunta}</p>
         <Container>
-          <Row className="text-center justify-content-center align-content-center">
+          <Row className="text-center justify-content-center align-items-stretch">
             {opciones.map((opcion, index) => (
-              <Col key={index} className="my-4 h-100 col-6">
-                <p><span className="fw-bold">{index + 1+")"}</span> {opcion.text}</p>
-                <Button
-                  variant={getButtonVariant(opcion)}
-                  onClick={() => handleSelectOption(opcion, index)}
-                >
-                  Elegir
-                </Button>
+              <Col key={index} className="my-3 col-sm-6 col-md-6">
+                <div className="opcion h-100 d-flex flex-column justify-content-between">
+                  <p>
+                    <span className="fw-bold">{index + 1 + ")"}</span>{" "}
+                    {opcion.text}
+                  </p>
+                  <Button
+                    variant={getButtonVariant(opcion)}
+                    onClick={() => handleSelectOption(opcion, index)}
+                  >
+                    Elegir
+                  </Button>
+                </div>
               </Col>
             ))}
           </Row>

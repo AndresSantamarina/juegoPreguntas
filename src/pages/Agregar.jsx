@@ -6,7 +6,6 @@ import { crearPreguntaAPI } from "../helpers/queries";
 import { useForm } from "react-hook-form";
 import Swal from "sweetalert2";
 import { useAuth } from "../context/AuthContext";
-import { useContext } from "react";
 
 const Agregar = () => {
   const {
@@ -19,37 +18,35 @@ const Agregar = () => {
   const { id } = useParams();
   const { user } = useAuth();
 
-    const crearPregunta = async (pregunta) => {
+  const crearPregunta = async (pregunta) => {
     try {
-        if (!user || !user.id) {
-            throw new Error("Debes iniciar sesión para crear preguntas");
-        }
+      if (!user || !user.id) {
+        throw new Error("Debes iniciar sesión para crear preguntas");
+      }
 
-        const preguntaConUsuario = {
-            ...pregunta,
-            usuario: user.id
-        };
+      const preguntaConUsuario = {
+        ...pregunta,
+        usuario: user.id,
+      };
 
-        const data = await crearPreguntaAPI(preguntaConUsuario);
-        
-        // Si llegamos aquí, la pregunta se creó correctamente
-        Swal.fire({
-            title: "Éxito",
-            text: "Pregunta creada correctamente",
-            icon: "success"
-        });
-        reset();
-        
+      const data = await crearPreguntaAPI(preguntaConUsuario);
+
+      Swal.fire({
+        title: "Éxito",
+        text: "Pregunta creada correctamente",
+        icon: "success",
+      });
+      reset();
     } catch (error) {
-        console.error("Error al crear pregunta:", error);
-        
-        Swal.fire({
-            title: "Error",
-            text: error.message || "Error al crear la pregunta",
-            icon: "error"
-        });
+      console.error("Error al crear pregunta:", error);
+
+      Swal.fire({
+        title: "Error",
+        text: error.message || "Error al crear la pregunta",
+        icon: "error",
+      });
     }
-};
+  };
 
   return (
     <Container className="mainSection">

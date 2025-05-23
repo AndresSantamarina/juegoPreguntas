@@ -2,15 +2,17 @@ import Container from "react-bootstrap/Container";
 import Nav from "react-bootstrap/Nav";
 import Navbar from "react-bootstrap/Navbar";
 import { Link } from "react-router-dom";
-import { useAuth } from "../../context/AuthContext"; // o useContext si no tenés useAuth
+import { useAuth } from "../../context/AuthContext";
 
 const MenuNav = () => {
-  const { user, logout } = useAuth(); // esto accede al usuario autenticado
+  const { user, logout } = useAuth();
 
   return (
     <Navbar expand="lg" className="bg-body-tertiary navbar">
       <Container>
-        <Navbar.Brand as={Link} to="/">Juego de Preguntas</Navbar.Brand>
+        <Navbar.Brand as={Link} to="/">
+          Juego de Preguntas
+        </Navbar.Brand>
         <Navbar.Toggle aria-controls="basic-navbar-nav" />
         <Navbar.Collapse id="basic-navbar-nav">
           <Nav className="ms-auto">

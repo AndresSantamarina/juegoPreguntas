@@ -13,8 +13,8 @@ const CardPreguntaEditDelete = ({ pregunta, setPreguntas, nivel }) => {
       text: "No se puede revertir este proceso",
       icon: "warning",
       showCancelButton: true,
-      confirmButtonColor: "#3085d6",
-      cancelButtonColor: "#d33",
+      confirmButtonColor: "#d33",
+      cancelButtonColor: "#3085d6",
       confirmButtonText: "Borrar",
       cancelButtonText: "Salir",
     }).then(async (result) => {
@@ -24,14 +24,15 @@ const CardPreguntaEditDelete = ({ pregunta, setPreguntas, nivel }) => {
 
           Swal.fire({
             title: "Pregunta eliminada!",
-            text: respuesta.message || "La pregunta fue eliminada correctamente",
+            text:
+              respuesta.message || "La pregunta fue eliminada correctamente",
             icon: "success",
           });
 
-          // Listar nuevamente con el nivel que se recibe como prop
-          const preguntasActualizadas = await listarPreguntasPorNivelUsuario(nivel);
+          const preguntasActualizadas = await listarPreguntasPorNivelUsuario(
+            nivel
+          );
           setPreguntas(preguntasActualizadas);
-
         } catch (error) {
           Swal.fire({
             title: "Ocurrió un error",
@@ -43,36 +44,36 @@ const CardPreguntaEditDelete = ({ pregunta, setPreguntas, nivel }) => {
     });
   };
 
-  console.log("Pregunta ID:", pregunta._id);
-
-
   return (
     <div className="my-5">
       <div className="cardContainer">
-        <p className="fw-bold">{pregunta.pregunta}</p>
+        <p className="fw-bold fs-4 text-center">{pregunta.pregunta}</p>
         <Container>
-          <Row className="text-center justify-content-center align-content-center">
-            <Col className="my-4 h-100 col-6">
-              <p><span className="fw-bold">1- </span>{pregunta.opcionUno}</p>
-            </Col>
-            <Col className="my-4 h-100 col-6">
-              <p><span className="fw-bold">2- </span>{pregunta.opcionDos}</p>
-            </Col>
-            <Col className="my-4 h-100 col-6">
-              <p><span className="fw-bold">3- </span>{pregunta.opcionTres}</p>
-            </Col>
-            <Col className="my-4 h-100 col-6">
-              <p><span className="fw-bold">4- </span>{pregunta.opcionCorrecta}</p>
-            </Col>
+          <Row className="text-center justify-content-center align-items-stretch">
+            {[
+              pregunta.opcionUno,
+              pregunta.opcionDos,
+              pregunta.opcionTres,
+              pregunta.opcionCorrecta,
+            ].map((op, i) => (
+              <Col key={i} className="my-3 col-sm-6 col-md-6">
+                <div className="opcion h-100">
+                  <p>
+                    <span className="fw-bold">{i + 1}- </span>
+                    {op}
+                  </p>
+                </div>
+              </Col>
+            ))}
           </Row>
-          <div className="text-center">
+          <div className="text-center mt-3">
             <Link
-              className="m-2 btn btn-warning"
-              to={"/preguntas/editar/" + pregunta._id}
+              className="btn btn-warning mx-2"
+              to={`/preguntas/editar/${pregunta._id}`}
             >
               Editar
             </Link>
-            <Button className="m-2" variant="danger" onClick={borrarPregunta}>
+            <Button variant="danger" className="mx-2" onClick={borrarPregunta}>
               Eliminar
             </Button>
           </div>

@@ -1,7 +1,10 @@
 import { Button, Container } from "react-bootstrap";
 import CardPreguntaEditDelete from "../components/CardPreguntaEditDelete";
 import { useNavigate, useParams } from "react-router-dom";
-import { listarPreguntasPorNivelUsuario, obtenerNiveles } from "../helpers/queries";
+import {
+  listarPreguntasPorNivelUsuario,
+  obtenerNiveles,
+} from "../helpers/queries";
 import { useEffect, useState } from "react";
 
 const Preguntas = () => {
@@ -13,35 +16,35 @@ const Preguntas = () => {
   const [mostrarLoader, setMostrarLoader] = useState(true);
   const [nivelSeleccionado, setNivelSeleccionado] = useState(false);
 
- useEffect(() => {
-  if (nivel) {
-    listarPreguntas();
-    setNivelSeleccionado(true);
-  } else {
-    setPreguntas([]);           // limpiar preguntas
-    setNivelSeleccionado(false);
-    setMostrarLoader(false);    // ya no muestres loader porque no hay nivel
-  }
-}, [nivel]);
+  useEffect(() => {
+    if (nivel) {
+      listarPreguntas();
+      setNivelSeleccionado(true);
+    } else {
+      setPreguntas([]);
+      setNivelSeleccionado(false);
+      setMostrarLoader(false);
+    }
+  }, [nivel]);
 
   useEffect(() => {
     cargarNiveles();
   }, [nivel]);
 
- const listarPreguntas = async () => {
-  if (!nivel) return;  // no llamar sin nivel
+  const listarPreguntas = async () => {
+    if (!nivel) return;
 
-  try {
-    setMostrarLoader(true);
-    const respuesta = await listarPreguntasPorNivelUsuario(nivel);
-    setPreguntas(respuesta);
-  } catch (error) {
-    console.error(error);
-    setPreguntas([]);  // limpiar si falla
-  } finally {
-    setMostrarLoader(false);
-  }
-};
+    try {
+      setMostrarLoader(true);
+      const respuesta = await listarPreguntasPorNivelUsuario(nivel);
+      setPreguntas(respuesta);
+    } catch (error) {
+      console.error(error);
+      setPreguntas([]);
+    } finally {
+      setMostrarLoader(false);
+    }
+  };
 
   const cargarNiveles = async () => {
     try {

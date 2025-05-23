@@ -2,6 +2,7 @@ import { useState, useContext } from "react";
 import { Form, Button, Container, Alert, Card } from "react-bootstrap";
 import { AuthContext } from "../context/AuthContext";
 import { useNavigate } from "react-router-dom";
+import Swal from "sweetalert2";
 
 const Register = () => {
   const { register } = useContext(AuthContext);
@@ -19,14 +20,24 @@ const Register = () => {
     e.preventDefault();
     const res = await register(formData);
     if (res.success) {
+      Swal.fire({
+        title: "Éxito",
+        text: "Usuario creado correctamente",
+        icon: "success",
+      });
       navigate("/");
     } else {
       setError(res.message);
+      Swal.fire({
+        title: "Error",
+        text: error.message || "Error al crear el usuario",
+        icon: "error",
+      });
     }
   };
 
   return (
-    <Container className="mt-5" style={{ maxWidth: "500px" }}>
+    <Container className="mt-5 mainSection" style={{ maxWidth: "500px" }}>
       <Card className="p-4 shadow">
         <h2 className="mb-3 text-center">Registrarse</h2>
         {error && <Alert variant="danger">{error}</Alert>}

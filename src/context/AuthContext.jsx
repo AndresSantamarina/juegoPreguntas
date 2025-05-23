@@ -1,12 +1,11 @@
 import { createContext, useContext, useState } from "react";
 import axios from "axios";
+import Swal from "sweetalert2";
 const URL_API = import.meta.env.VITE_API_URI;
 
 export const AuthContext = createContext();
 
 export const useAuth = () => useContext(AuthContext);
-
-
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(() => {
@@ -16,20 +15,17 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (credentials) => {
     try {
-      console.log("Credenciales que se envían al backend:", credentials);
       const res = await axios.post(`${URL_API}/login`, credentials);
-      
-      // Verifica la estructura de la respuesta
-      console.log("Respuesta completa del backend:", res.data);
-      
+
       if (!res.data.user || !res.data.user.id) {
-        throw new Error("La respuesta del servidor no incluye datos de usuario válidos");
+        throw new Error(
+          "La respuesta del servidor no incluye datos de usuario válidos"
+        );
       }
 
       const userData = {
         id: res.data.user.id,
         name: res.data.user.name,
-        // Agrega otros campos necesarios
       };
 
       setUser(userData);
@@ -38,9 +34,12 @@ export const AuthProvider = ({ children }) => {
       return { success: true };
     } catch (error) {
       console.error("Error en login:", error);
-      return { 
-        success: false, 
-        message: error.response?.data?.message || error.message || "Error al iniciar sesión" 
+      return {
+        success: false,
+        message:
+          error.response?.data?.message ||
+          error.message ||
+          "Error al iniciar sesión",
       };
     }
   };
@@ -53,14 +52,21 @@ export const AuthProvider = ({ children }) => {
       sessionStorage.setItem("token", res.data.token);
       return { success: true };
     } catch (error) {
-      return { success: false, message: error.response?.data?.message || "Error al registrar" };
+      return {
+        success: false,
+        message: error.response?.data?.message || "Error al registrar",
+      };
     }
   };
 
   const logout = () => {
     setUser(null);
     sessionStorage.clear();
-
+    Swal.fire({
+      title: "Éxito",
+      text: "Sesión cerrada",
+      icon: "success",
+    });
   };
 
   return (
