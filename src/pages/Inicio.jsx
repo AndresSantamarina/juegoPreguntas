@@ -1,10 +1,15 @@
 import { Container } from "react-bootstrap";
 import imgPregunta from "../assets/question-mark.png";
+import { useAuth } from "../context/AuthContext";
 
 const Inicio = () => {
+  const { user } = useAuth();
+
   return (
     <Container className="mainSection">
-      <h1 className="text-center mt-5">BIENVENIDO!</h1>
+      <h1 className="text-center mt-5">
+        BIENVENIDO{user ? `, ${user.name.toUpperCase()}!` : "!"}
+      </h1>
       <section className="text-center my-5">
         <p>
           ¡Bienvenido al <span className="fw-bold">Juego de Preguntas</span>!
