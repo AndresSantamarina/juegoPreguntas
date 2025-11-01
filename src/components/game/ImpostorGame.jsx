@@ -45,6 +45,7 @@ const ImpostorGame = () => {
     emitSubmitVote,
     emitChooseTarget,
     emitSubmitGuess,
+    emitImpostorSubmitGuess,
 
     // Función de utilidad
     handleCopyRoomId,
@@ -78,9 +79,19 @@ const ImpostorGame = () => {
 
   const onSubmitGuess = (data) => {
     if (myGuessSubmitted || !playerState?.isAlive) return;
-    emitSubmitGuess(data.guess, (response) => {
-      if (response.success) resetGuess();
-    });
+
+    // 🔑 CLAVE: Usamos la función de emisión correcta según la fase
+    if (gameState.status === "IMPOSTOR_GUESSING") {
+      // Usar la función de 'Última Oportunidad'
+      emitImpostorSubmitGuess(data.guess, (response) => {
+        if (response.success) resetGuess();
+      });
+    } else if (gameState.status === "GUESSING") {
+      // Usar la función de 'Modo de 2 Jugadores'
+      emitSubmitGuess(data.guess, (response) => {
+        if (response.success) resetGuess();
+      });
+    }
   };
 
   // 4. Variables de Renderizado
@@ -89,7 +100,7 @@ const ImpostorGame = () => {
   const isInGame = gameState.status === "IN_GAME";
   const isVoting = gameState.status === "VOTING";
   const isImpostorChoosing = gameState.status === "IMPOSTOR_CHOOSING";
-
+  const isImpostorGuessing = gameState?.status === "IMPOSTOR_GUESSING"; // ⬅️ Asegúrate de que esta línea exista
   // --- RENDERIZADO ---
   if (!userId) {
     navigate("/login");
@@ -133,7 +144,7 @@ const ImpostorGame = () => {
     );
   }
 
-  if (isInGame || isVoting || isImpostorChoosing) {
+  if (isInGame || isVoting || isImpostorChoosing || isImpostorGuessing) {
     // Variables calculadas para GamePhaseView
     const currentTurnPlayerId = gameState.turnOrder[gameState.currentTurnIndex];
     const currentTurnPlayer = currentTurnPlayerId
@@ -154,6 +165,7 @@ const ImpostorGame = () => {
         isInGame={isInGame}
         isVoting={isVoting}
         isImpostorChoosing={isImpostorChoosing}
+        isImpostorGuessing={isImpostorGuessing}
         // Turno
         currentTurnPlayer={currentTurnPlayer}
         isMyTurn={isMyTurn}
@@ -168,6 +180,12 @@ const ImpostorGame = () => {
         myClue={myClue}
         myVoteTarget={myVoteTarget}
         impostorTarget={impostorTarget}
+        // 🔑 NUEVO: Formulario Guess (ADIVINANZA DEL IMPOSTOR)
+        handleSubmitGuess={handleSubmitGuess}
+        onSubmitGuess={onSubmitGuess}
+        registerGuess={registerGuess}
+        errorsGuess={errorsGuess}
+        myGuessSubmitted={myGuessSubmitted} // Estado para deshabilitar el formulario
       />
     );
   }

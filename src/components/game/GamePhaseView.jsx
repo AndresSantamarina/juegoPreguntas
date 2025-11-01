@@ -1,5 +1,3 @@
-// src/components/impostor/GamePhaseView.jsxasdasd
-import React from "react";
 import {
   Container,
   Row,
@@ -28,6 +26,7 @@ const GamePhaseView = ({
   isInGame,
   isVoting,
   isImpostorChoosing,
+  isImpostorGuessing,
   currentTurnPlayer,
   isMyTurn,
   handleVote, // Función de emisión
@@ -38,6 +37,12 @@ const GamePhaseView = ({
   errorsClue,
   myVoteTarget,
   impostorTarget,
+  // 🔑 NUEVAS PROPS DE FORMULARIO DE ADIVINANZA
+  handleSubmitGuess,
+  onSubmitGuess,
+  registerGuess,
+  errorsGuess,
+  myGuessSubmitted, // Usamos este estado de ImpostorGame
 }) => {
   const isAlive = playerState?.isAlive ?? true;
   const myLives = playerState?.lives ?? 3;
@@ -45,7 +50,7 @@ const GamePhaseView = ({
   // Variables calculadas de rol y palabras
   const isMyKeyword =
     gameState.myRole === "INNOCENT" ? gameState.myKeyword : null;
-  const displayedWords = gameState.words.map((word) => ({
+  const displayedWords = gameState.words?.map((word) => ({
     word: word,
     isKeyword: word === isMyKeyword,
   }));
@@ -57,6 +62,8 @@ const GamePhaseView = ({
         {isInGame && " Fase de Pistas 🗣️"}
         {isVoting && " Fase de Votación 🗳️"}
         {isImpostorChoosing && " Fase de Ataque 🔪"}
+        {/* 🔑 NUEVO: Título para la última oportunidad */}
+        {isImpostorGuessing && " ¡Última Oportunidad! 🚨"}
       </h1>
 
       <Row className="mb-4">
@@ -217,6 +224,53 @@ const GamePhaseView = ({
               </Card.Body>
             </Card>
           )}
+          {/* 🚀 NUEVO BLOQUE: Panel de Adivinanza del Impostor */}
+          {isImpostorGuessing && gameState.myRole === "IMPOSTOR" && isAlive && (
+            <Card className="shadow border-danger mb-3">
+              <Card.Body>
+                <Card.Title className="text-danger fw-bold">
+                  ¡Adivina para Salvarte! 🤯
+                </Card.Title>
+                {myGuessSubmitted ? (
+                  <Alert variant="warning" className="text-center">
+                    Adivinanza enviada. El destino está echado...
+                  </Alert>
+                ) : (
+                  <Form onSubmit={handleSubmitGuess(onSubmitGuess)}>
+                    <Form.Group className="mb-3">
+                      <Form.Label className="fw-bold">
+                        ¿Cuál crees que es la palabra clave de los Inocentes?
+                      </Form.Label>
+                      <Form.Control
+                        type="text"
+                        placeholder="Ingresa tu adivinanza (Ej: GLOBO)"
+                        {...registerGuess("guess", {
+                          required: "La adivinanza es obligatoria",
+                          pattern: {
+                            value: /^\S+$/,
+                            message: "Debe ser una sola palabra",
+                          },
+                        })}
+                        isInvalid={!!errorsGuess.guess}
+                        disabled={myGuessSubmitted || !isAlive}
+                      />
+                      <Form.Control.Feedback type="invalid">
+                        {errorsGuess.guess?.message}
+                      </Form.Control.Feedback>
+                    </Form.Group>
+                    <Button
+                      variant="danger"
+                      type="submit"
+                      className="w-100 fw-bold"
+                      disabled={myGuessSubmitted || !isAlive}
+                    >
+                      Adivinar y Salvar Vidas
+                    </Button>
+                  </Form>
+                )}
+              </Card.Body>
+            </Card>
+          )}
         </Col>
 
         <Col md={12} lg={8}>
@@ -257,7 +311,7 @@ const GamePhaseView = ({
               {isVoting ? (
                 <ListGroup>
                   {gameState.players
-                    .filter((p) => p.isAlive)
+                    ?.filter((p) => p.isAlive)
                     .map((p) => {
                       const isTarget = myVoteTarget === p.id;
                       const isDisabled =
@@ -300,7 +354,7 @@ const GamePhaseView = ({
               ) : isImpostorChoosing ? (
                 <ListGroup>
                   {gameState.players
-                    .filter((p) => p.isAlive && p.id !== user?.id) // Filtramos al impostor para que no se elija
+                    ?.filter((p) => p.isAlive && p.id !== user?.id) // Filtramos al impostor para que no se elijaasdad
                     .map((p) => {
                       const isTarget = impostorTarget === p.id;
                       const isDisabled =
@@ -340,10 +394,15 @@ const GamePhaseView = ({
                       : "El Impostor está eligiendo una víctima..."}
                   </Alert>
                 </ListGroup>
+              ) : isImpostorGuessing ? (
+                <Alert variant="danger" className="text-center fw-bold">
+                  El Impostor tiene su última oportunidad. Esperando el
+                  resultado de la adivinanza...
+                </Alert>
               ) : (
                 <ListGroup>
                   {gameState.players
-                    .filter((p) => p.clueGiven)
+                    ?.filter((p) => p.clueGiven)
                     .map((p) => (
                       <ListGroup.Item
                         key={p.id}
@@ -357,14 +416,14 @@ const GamePhaseView = ({
                         </span>
                       </ListGroup.Item>
                     ))}
-                  {gameState.players.filter((p) => p.isAlive && !p.clueGiven)
+                  {gameState.players?.filter((p) => p.isAlive && !p.clueGiven)
                     .length > 0 && (
                     <Alert variant="light" className="mt-2 text-center">
                       <Spinner animation="grow" size="sm" className="me-2" />
                       Esperando pistas de{" "}
                       <span className="fw-bold">
                         {
-                          gameState.players.filter(
+                          gameState.players?.filter(
                             (p) => p.isAlive && !p.clueGiven
                           ).length
                         }

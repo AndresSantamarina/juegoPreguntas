@@ -71,7 +71,7 @@ export const useGameSocket = (roomId, userId, navigate) => {
         maxTimeSeconds
     ]);
 
-    // Función central para actualizar el estado del juego
+    // Función central para actualizar el estado del juegoasdasd
     const handleRoomUpdate = useCallback((data, isInitialLoad = false) => {
         console.log('[LOG STATE] Antes de actualizar. Turn Index PREVIO:', gameState.currentTurnIndex);
         const { room: roomData, myRole, myKeyword } = data;
@@ -167,6 +167,23 @@ export const useGameSocket = (roomId, userId, navigate) => {
                 Swal.fire({ title: "¡Modo de 2 Jugadores!", text: data.message, icon: "warning", confirmButtonText: "Entendido" });
                 setGameState(prev => ({ ...prev, ...data, words: data.words }));
             },
+            'guessing_impostor_started': (data) => {
+                // 🔑 ACLARACIÓN: Esta fase ocurre cuando el Impostor es el más votado.
+                setMyGuessSubmitted(false);
+                Swal.fire({
+                    title: "¡Última Oportunidad del Impostor! 🧐",
+                    text: data.message || "El Impostor tiene una chance de adivinar la palabra clave para salvarse.",
+                    icon: "warning",
+                    confirmButtonText: "Entendido"
+                });
+                // setMyGuessSubmitted(false); 
+                setGameState(prev => ({
+                    ...prev,
+                    ...data,
+                    words: data.words || [],
+                    status: 'IMPOSTOR_GUESSING' // Asumo que este es el estado del backendasd
+                }));
+            },
             'round_new': (data) => {
                 Swal.fire({
                     title: "¡Nueva Ronda!", text: data.message || `Comienza la Ronda ${data.currentRound}.`,
@@ -226,7 +243,7 @@ export const useGameSocket = (roomId, userId, navigate) => {
         }
     };
 
-    // 5. Handlers de Emisión con lógica de respuesta (Extraídos de ImpostorGame.jsx)
+    // 5. Handlers de Emisión con lógica de respuesta (Extraídos de ImpostorGame.jsx)asd
 
     const emitGetGameState = (callback = () => { }) => {
         setLoading(true);
@@ -291,7 +308,15 @@ export const useGameSocket = (roomId, userId, navigate) => {
             if (result.isConfirmed) {
                 emitEvent('submitVote', { targetId: targetUserId }, (response) => {
                     if (response.success) {
-                        setMyVoteTarget(targetUserId);
+                        // 🔑 CAMBIO CLAVE: Solo fija el voto si el backend te devuelve la 'room',
+                        // indicando que el juego sigue en VOTING.
+                        if (response.room) {
+                            setMyVoteTarget(targetUserId);
+                        } else {
+                            // La votación ha terminado, limpiamos el estado local para
+                            // esperar la actualización de fase (broadcast).
+                            setMyVoteTarget(null);
+                        }
                     } else {
                         Swal.fire("Error", response.message || "No se pudo registrar tu voto.", "error");
                     }
@@ -335,6 +360,23 @@ export const useGameSocket = (roomId, userId, navigate) => {
         });
     };
 
+    const emitImpostorSubmitGuess = (guessedWord, callback) => {
+        const guessText = guessedWord.toUpperCase().trim();
+        // Usamos 'guess' para que coincida con el backend
+        emitEvent('impostorSubmitGuess', { guess: guessText }, (response) => {
+            if (response.success) {
+                setMyGuessSubmitted(true);
+                // El backend enviará 'round_new' o 'game_finished' después de procesasdasdarasd
+                if (response.currentStatus !== 'FINISHED') {
+                    Swal.fire({ title: "Adivinanza Enviada", text: response.message, icon: "info", timer: 2000, showConfirmButton: false });
+                }
+            } else {
+                Swal.fire("Error", response.message || "No se pudo enviar la adivinanza.", "error");
+            }
+            if (callback) callback(response);
+        });
+    };
+
     // 6. Valores devueltos por el hook
     return {
         gameState,
@@ -361,6 +403,7 @@ export const useGameSocket = (roomId, userId, navigate) => {
         emitSubmitVote,
         emitChooseTarget,
         emitSubmitGuess,
+        emitImpostorSubmitGuess,
         emitGetGameState, // También la exportamos por si acaso 
 
         // Función de utilidad
