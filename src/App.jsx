@@ -9,9 +9,12 @@ import Footer from "./components/common/Footer";
 import Error404 from "./pages/Error404";
 import Preguntas from "./pages/Preguntas";
 import Editar from "./pages/Editar";
+import ImpostorHome from "./pages/ImpostorHome";
+import ImpostorLayout from "./components/ImpostorLayout";
 import { AuthProvider } from "./context/AuthContext";
 import LoginForm from "./components/LoginForm";
 import Register from "./components/Register";
+import ImpostorGame from "./components/game/ImpostorGame";
 
 function App() {
   return (
@@ -40,6 +43,16 @@ function App() {
           ></Route>
           <Route exact path="/jugar" element={<Jugar></Jugar>}></Route>
           <Route exact path="/jugar/:nivel" element={<Jugar></Jugar>}></Route>
+          {/* 🧩 MÓDULO IMPOSTOR (MODULARIZADO CON LAYOUT) 🧩 */}
+          <Route path="/impostor" element={<ImpostorLayout />}>
+            {/* Ruta Parent: Provee el SocketProvider */}
+
+            {/* Ruta 1: Home de Impostor (/impostor) */}
+            <Route index element={<ImpostorHome />} />
+
+            {/* Ruta 2: Partida de Impostor (/impostor/room/:roomId) */}
+            <Route path="room/:roomId" element={<ImpostorGame />} />
+          </Route>
           <Route exact path="*" element={<Error404></Error404>}></Route>
         </Routes>
         <Footer />

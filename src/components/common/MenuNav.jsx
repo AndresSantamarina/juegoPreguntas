@@ -30,6 +30,9 @@ const MenuNav = () => {
                 <Nav.Link as={Link} to="/">
                   INICIO
                 </Nav.Link>
+                <Nav.Link as={Link} to="/impostor">
+                  IMPOSTOR
+                </Nav.Link>
                 <Nav.Link as={Link} to="/agregar">
                   AGREGAR
                 </Nav.Link>

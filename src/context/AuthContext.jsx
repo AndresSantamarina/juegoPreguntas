@@ -9,7 +9,7 @@ export const useAuth = () => useContext(AuthContext);
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(() => {
-    const saved = sessionStorage.getItem("user");
+    const saved = localStorage.getItem("user");
     return saved ? JSON.parse(saved) : null;
   });
 
@@ -29,8 +29,8 @@ export const AuthProvider = ({ children }) => {
       };
 
       setUser(userData);
-      sessionStorage.setItem("user", JSON.stringify(userData));
-      sessionStorage.setItem("token", res.data.token);
+      localStorage.setItem("user", JSON.stringify(userData));
+      localStorage.setItem("token", res.data.token);
       return { success: true };
     } catch (error) {
       console.error("Error en login:", error);
@@ -48,8 +48,8 @@ export const AuthProvider = ({ children }) => {
     try {
       const res = await axios.post(`${URL_API}/register`, userData);
       setUser(res.data.user);
-      sessionStorage.setItem("user", JSON.stringify(res.data.user));
-      sessionStorage.setItem("token", res.data.token);
+      localStorage.setItem("user", JSON.stringify(res.data.user));
+      localStorage.setItem("token", res.data.token);
       return { success: true };
     } catch (error) {
       return {
@@ -61,7 +61,7 @@ export const AuthProvider = ({ children }) => {
 
   const logout = () => {
     setUser(null);
-    sessionStorage.clear();
+    localStorage.clear();
     Swal.fire({
       title: "Éxito",
       text: "Sesión cerrada",
