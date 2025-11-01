@@ -1,4 +1,3 @@
-import React from 'react';
 import { Container, Spinner } from 'react-bootstrap';
 
 const LoadingView = ({ isConnected, loading }) => {

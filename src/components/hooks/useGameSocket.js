@@ -1,7 +1,6 @@
-// src/hooks/useGameSocket.js
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import Swal from 'sweetalert2';
-import { useSocket } from '../../context/SocketContext.jsx'; // Usamos el socket global
+import { useSocket } from '../../context/SocketContext.jsx';
 
 const TURN_TIME_MS = 30000;
 
@@ -19,22 +18,15 @@ const initialGameState = {
 };
 
 export const useGameSocket = (roomId, userId, navigate) => {
-    // 1. Obtener socket del contexto global
     const { socket, isConnected } = useSocket();
-
-    // 2. Estados principales del juego
     const [gameState, setGameState] = useState(initialGameState);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
-
-    // Estados locales simulados del componente (necesarios para el renderizado/botones)
-    // El componente ImpostorGame usará estos para los formularios, pero los devolvemos para info
     const [myClue, setMyClue] = useState("");
     const [myVoteTarget, setMyVoteTarget] = useState(null);
     const [myGuessSubmitted, setMyGuessSubmitted] = useState(false);
     const [impostorTarget, setImpostorTarget] = useState(null);
 
-    // Lógica del Timer (Modularizada)
     const calculateRemainingTime = useCallback(() => {
         if (gameState.turnStartTime) {
             const startTime = new Date(gameState.turnStartTime).getTime();
@@ -71,7 +63,6 @@ export const useGameSocket = (roomId, userId, navigate) => {
         maxTimeSeconds
     ]);
 
-    // Función central para actualizar el estado del juegoasdasdasdaasd
     const handleRoomUpdate = useCallback((data, isInitialLoad = false) => {
         console.log('[LOG STATE] Antes de actualizar. Turn Index PREVIO:', gameState.currentTurnIndex);
         const { room: roomData, myRole, myKeyword } = data;
@@ -94,7 +85,6 @@ export const useGameSocket = (roomId, userId, navigate) => {
             return newGameState;
         });
 
-        // Lógica de estados locales que estaban en tu useEffect inicial
         if (isInitialLoad && roomData.players) {
             const currentPlayer = roomData.players.find((p) => p.id === userId);
             if (currentPlayer?.clueGiven) setMyClue(currentPlayer.clueGiven);
@@ -104,36 +94,19 @@ export const useGameSocket = (roomId, userId, navigate) => {
 
     }, [userId]);
 
-
-    // 3. Efecto de Conexión, Inicialización y Listeners
     useEffect(() => {
         if (!socket || !isConnected || !userId || !roomId) {
             if (!userId) navigate("/login");
             return;
         }
 
-        // 3.1 Inicialización: Obtener el estado del juegoasdasdsadasdasdasda
         emitGetGameState();
 
-        // const onPlayerUpdate = (data) => {
-        //     // Usar la función de actualización de estado para garantizar la frescura
-        //     setGameState(prev => ({
-        //         ...prev,
-        //         players: data.players || prev.players // Asegúrate que data.players existe
-        //     }));
-        // };
-        // socket.on('player_update', onPlayerUpdate);
-
-        // 3.2 Handlers de Eventos de Juego (extraídos de tu componente original)
         const handlers = {
-            // 'room_state_update': (data) => handleRoomUpdate(data),
             'player_update': (data) => {
-                // Asumimos que 'data' contiene la estructura de 'room' completa.asdasdasdasd
                 handleRoomUpdate({ room: data });
             },
             'game_started_update': () => {
-                // ⏳ PAUSA CRÍTICA: Permite que el evento 'turn_advanced' (que lleva la info del turno)
-                // se procese y actualice el estado del turno antes de llamar a emitGetGameState.
                 emitGetGameState();
             },
             'turn_advanced': (data) => {
@@ -147,12 +120,11 @@ export const useGameSocket = (roomId, userId, navigate) => {
             'voting_started': (data) => {
                 Swal.fire({ title: "¡Votación!", text: data.message, icon: "info", timer: 3000, showConfirmButton: false });
                 setGameState(prev => ({ ...prev, ...data }));
-                setMyClue(""); setMyVoteTarget(null); setImpostorTarget(null); // Resetear estados locales
+                setMyClue(""); setMyVoteTarget(null); setImpostorTarget(null);
             },
             'impostor_choosing': (data) => {
-                // Usa gameState.myRole para la lógica de Swal
                 setGameState(prev => {
-                    const isImpostor = prev.myRole === "IMPOSTOR"; // 👈 Obtener el rol del estado PREVIO o actual
+                    const isImpostor = prev.myRole === "IMPOSTOR";
                     Swal.fire({
                         title: "¡Ataque del Impostor!",
                         text: data.message,
@@ -168,7 +140,6 @@ export const useGameSocket = (roomId, userId, navigate) => {
                 setGameState(prev => ({ ...prev, ...data, words: data.words }));
             },
             'guessing_impostor_started': (data) => {
-                // 🔑 ACLARACIÓN: Esta fase ocurre cuando el Impostor es el más votado.
                 setMyGuessSubmitted(false);
                 Swal.fire({
                     title: "¡Última Oportunidad del Impostor! 🧐",
@@ -176,29 +147,24 @@ export const useGameSocket = (roomId, userId, navigate) => {
                     icon: "warning",
                     confirmButtonText: "Entendido"
                 });
-                // setMyGuessSubmitted(false); 
                 setGameState(prev => ({
                     ...prev,
                     ...data,
                     words: data.words || [],
-                    status: 'IMPOSTOR_GUESSING' // Asumo que este es el estado del backendasd
+                    status: 'IMPOSTOR_GUESSING'
                 }));
             },
             'guess_submitted': (data) => {
-
-                // 🔑 NUEVA LÓGICA: Si el turno se ha reseteado al índice 0
-                // (y no era el primer turno), es una señal de que AMBOS FALLARON
-                const isGuessingRestart = data.currentTurnIndex === 0 && gameState.currentTurnIndex === 1; // Ajusta el 1 a la cantidad de jugadores -1 que tengas
+                const isGuessingRestart = data.currentTurnIndex === 0 && gameState.currentTurnIndex === 1;
 
                 if (isGuessingRestart) {
-                    setMyGuessSubmitted(false); // <--- REINICIA ESTADO LOCAL
+                    setMyGuessSubmitted(false);
                 }
 
                 setGameState(prev => ({
                     ...prev,
-                    // Sobrescribir el estado con los nuevos datos de la sala
                     players: data.players || prev.players,
-                    ...data // Esto sobrescribe otras propiedades (currentTurnIndex)
+                    ...data
                 }));
                 Swal.fire({ title: "Adivinanza Recibida", text: data.message, icon: "info", timer: 2000, showConfirmButton: false });
             },
@@ -207,7 +173,6 @@ export const useGameSocket = (roomId, userId, navigate) => {
                     title: "¡Nueva Ronda!", text: data.message || `Comienza la Ronda ${data.currentRound}.`,
                     icon: "info", timer: 3000, showConfirmButton: false
                 });
-                // Resetear estados locales
                 setMyClue(""); setMyVoteTarget(null); setMyGuessSubmitted(false); setImpostorTarget(null);
                 setGameState(prev => ({ ...prev, ...data }));
             },
@@ -216,7 +181,7 @@ export const useGameSocket = (roomId, userId, navigate) => {
             },
             'guessing_next_attempt': (data) => {
                 Swal.fire({ title: "¡Ambos Fallaron!", text: `La palabra correcta era: ${data.secretWord}. Tienen otra oportunidad.`, icon: "error", confirmButtonText: "¡Adivinar de Nuevo!", });
-                setMyGuessSubmitted(false); // Permite adivinar de nuevo
+                setMyGuessSubmitted(false);
                 setGameState(prev => ({ ...prev, players: prev.players.map(p => ({ ...p, guessGiven: false })), ...data }));
             },
             'game_finished': (data) => {
@@ -232,36 +197,26 @@ export const useGameSocket = (roomId, userId, navigate) => {
             'room_closed': (data) => {
                 Swal.fire({ title: "Sala Cerrada", text: data.message || "El anfitrión ha cancelado la partida.", icon: "info", confirmButtonText: "Volver a Impostor Home" }).then(() => navigate("/impostor"));
             },
-            'game_status_update': (data) => handleRoomUpdate({ room: data }), // Asumimos que data tiene la estructura de 'room'
+            'game_status_update': (data) => handleRoomUpdate({ room: data }),
         };
-
-        // 3.3 Suscribir a todos los listenersasdasd
         const listenerKeys = Object.keys(handlers);
         listenerKeys.forEach(eventName => socket.on(eventName, handlers[eventName]));
-
-        // 3.4 Cleanup 
         return () => {
             listenerKeys.forEach(eventName => socket.off(eventName, handlers[eventName]));
         };
-    }, [socket, isConnected, userId, roomId, navigate]); // Incluye gameState.myRole en deps
+    }, [socket, isConnected, userId, roomId, navigate]);
 
-    // 4. Funciones de Emisión para el Componente Principal
     const emitEvent = (eventName, data, callback) => {
-        // Asegurarse de que callback sea al menos una función vacía si no se pasa
         const responseCallback = typeof callback === 'function' ? callback : () => { };
 
         if (socket && socket.connected) {
             const payload = { ...data, roomId, userId };
-            // socket.emit recibe la función segura
             socket.emit(eventName, payload, responseCallback);
         } else {
             console.warn(`Intento de enviar ${eventName} con socket desconectado.`);
-            // Si el socket no está conectado, llama al callback seguro inmediatamente
             responseCallback({ success: false, message: "Socket no conectado." });
         }
     };
-
-    // 5. Handlers de Emisión con lógica de respuesta (Extraídos de ImpostorGame.jsx)asd
 
     const emitGetGameState = (callback = () => { }) => {
         setLoading(true);
@@ -272,28 +227,23 @@ export const useGameSocket = (roomId, userId, navigate) => {
                 Swal.fire("Error", response.message || "No se pudo cargar la sala.", "error")
                     .then(() => navigate("/impostor"));
             }
-            // ✅ Esto actualizará el estado del frontend con el rol y la palabra
             handleRoomUpdate(response, true);
             callback(response);
         });
     };
 
-    // En emitStartGame, ya tienes la corrección, solo asegúrate que la llamada interna también es segura
     const emitStartGame = (callback = () => { }) => {
         emitEvent('startGame', {}, (response) => {
             if (!response.success) {
                 Swal.fire("Error", response.message || "Error al iniciar el juego.", "error");
-                callback(response); // Aseguramos el callback incluso en error
+                callback(response);
             } else {
-                // ✅ FORZAMOS la obtención del estado para actualizar el rol/palabra del jugador local
                 emitGetGameState(() => {
                     callback(response);
                 });
             }
         });
     };
-
-
 
     const emitCancelGame = () => {
         Swal.fire({
@@ -326,13 +276,9 @@ export const useGameSocket = (roomId, userId, navigate) => {
             if (result.isConfirmed) {
                 emitEvent('submitVote', { targetId: targetUserId }, (response) => {
                     if (response.success) {
-                        // 🔑 CAMBIO CLAVE: Solo fija el voto si el backend te devuelve la 'room',
-                        // indicando que el juego sigue en VOTING.
                         if (response.room) {
                             setMyVoteTarget(targetUserId);
                         } else {
-                            // La votación ha terminado, limpiamos el estado local para
-                            // esperar la actualización de fase (broadcast).
                             setMyVoteTarget(null);
                         }
                     } else {
@@ -367,11 +313,8 @@ export const useGameSocket = (roomId, userId, navigate) => {
         const guessText = guessedWord.toUpperCase().trim();
         emitEvent('submitGuess', { guessedWord: guessText }, (response) => {
             if (response.success) {
-                // ❌ ELIMINAR ESTA LÍNEA (Dejar que el 'guess_submitted' listener haga el trabajo)
-                // setMyGuessSubmitted(true); // <--- QUITAR
 
                 if (!response.isFinished) {
-                    // Usa el playerState para el mensaje local
                     Swal.fire({ title: "Adivinanza Enviada", text: "Esperando el broadcast del juego...", icon: "info", timer: 2000, showConfirmButton: false });
                 }
             } else {
@@ -383,11 +326,9 @@ export const useGameSocket = (roomId, userId, navigate) => {
 
     const emitImpostorSubmitGuess = (guessedWord, callback) => {
         const guessText = guessedWord.toUpperCase().trim();
-        // Usamos 'guess' para que coincida con el backend
         emitEvent('impostorSubmitGuess', { guess: guessText }, (response) => {
             if (response.success) {
                 setMyGuessSubmitted(true);
-                // El backend enviará 'round_new' o 'game_finished' después de procesasdasdarasd
                 if (response.currentStatus !== 'FINISHED') {
                     Swal.fire({ title: "Adivinanza Enviada", text: response.message, icon: "info", timer: 2000, showConfirmButton: false });
                 }
@@ -398,30 +339,22 @@ export const useGameSocket = (roomId, userId, navigate) => {
         });
     };
 
-    console.log("------------------- INFO CRÍTICA DEL HOOK -------------------");
-    console.log("ID LOCAL PASADA (userId):", userId, " | Tipo:", typeof userId);
-    console.log("Contenido de gameState.players:", gameState.players); // << LOG MÁS IMPORTANTE
-
-    // 6. Valores devueltos por el hook
     return {
         gameState,
         loading,
         error,
-        isConnected, // Estado del socket global
-        remainingTime, // Para el Timer de UI
+        isConnected,
+        remainingTime,
 
-        // Datos derivados para UI (simplifica ImpostorGame.jsx)
         playerState: gameState.players?.find((p) => p.id?.toString() === userId.toString()),
         isHost: gameState.players.find((p) => p.id === userId)?.isHost || false,
         canStartGame: gameState.players.length >= 3,
 
-        // Estados locales simulados
         myClue,
         myVoteTarget,
         myGuessSubmitted,
         impostorTarget,
 
-        // Funciones de Emisión con lógica de UI integrada
         emitStartGame,
         emitCancelGame,
         emitSubmitClue,
@@ -429,9 +362,8 @@ export const useGameSocket = (roomId, userId, navigate) => {
         emitChooseTarget,
         emitSubmitGuess,
         emitImpostorSubmitGuess,
-        emitGetGameState, // También la exportamos por si acaso 
+        emitGetGameState,
 
-        // Función de utilidad
         handleCopyRoomId: () => {
             navigator.clipboard.writeText(roomId).then(() =>
                 Swal.fire({ title: "Copiado ✅", text: `ID de sala (${roomId}) copiado.`, icon: "success", timer: 1500, showConfirmButton: false })

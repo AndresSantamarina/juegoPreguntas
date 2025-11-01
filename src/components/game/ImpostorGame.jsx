@@ -1,44 +1,33 @@
-// src/pages/ImpostorGame.jsx
-import React from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import { useForm } from "react-hook-form";
 import { useGameSocket } from "../hooks/useGameSocket";
-import Swal from "sweetalert2";
 
-// Vistas Modularizadas
 import LoadingView from "./LoadingView";
 import LobbyView from "./LobbyView";
 import GuessingView from "./GuessingView";
 import GamePhaseView from "./GamePhaseView";
 
-// ⚠️ Este componente DEBE estar envuelto por AuthProvider y SocketProvider.
 const ImpostorGame = () => {
   const { roomId } = useParams();
   const navigate = useNavigate();
   const { user } = useAuth();
   const userId = user?.id;
 
-  // 1. Obtener todo el estado, datos derivados y funciones del hook
   const {
     gameState,
     loading,
     error,
     isConnected,
     remainingTime,
-
-    // Datos derivados
     playerState,
     isHost,
     canStartGame,
-
-    // Estados locales simulados (para formularios)
     myClue,
     myVoteTarget,
     myGuessSubmitted,
     impostorTarget,
 
-    // Funciones de emisión con lógica
     emitStartGame,
     emitCancelGame,
     emitSubmitClue,
@@ -46,13 +35,9 @@ const ImpostorGame = () => {
     emitChooseTarget,
     emitSubmitGuess,
     emitImpostorSubmitGuess,
-
-    // Función de utilidad
     handleCopyRoomId,
   } = useGameSocket(roomId, userId, navigate);
 
-  // 2. Hooks de formulario (se mantienen aquí ya que manejan el input local)
-  // Para la PISTA (GamePhaseView)
   const {
     register,
     handleSubmit,
@@ -60,15 +45,12 @@ const ImpostorGame = () => {
     formState: { errors: errorsClue },
   } = useForm();
 
-  // Para la ADIVINANZA (GuessingView)
   const {
     register: registerGuess,
     handleSubmit: handleSubmitGuess,
     reset: resetGuess,
     formState: { errors: errorsGuess },
   } = useForm();
-
-  // 3. Handlers de formularios que usan las funciones de emisión del hook
 
   const onSubmitClue = (data) => {
     if (playerState?.clueGiven) return;
@@ -80,28 +62,22 @@ const ImpostorGame = () => {
   const onSubmitGuess = (data) => {
     if (myGuessSubmitted || !playerState?.isAlive) return;
 
-    // 🔑 CLAVE: Usamos la función de emisión correcta según la fase
     if (gameState.status === "IMPOSTOR_GUESSING") {
-      // Usar la función de 'Última Oportunidad'
       emitImpostorSubmitGuess(data.guess, (response) => {
         if (response.success) resetGuess();
       });
     } else if (gameState.status === "GUESSING") {
-      // Usar la función de 'Modo de 2 Jugadores'
       emitSubmitGuess(data.guess, (response) => {
         if (response.success) resetGuess();
       });
     }
   };
-
-  // 4. Variables de Renderizado
   const isLobby = gameState.status === "LOBBY";
   const isGuessingMode = gameState.status === "GUESSING";
   const isInGame = gameState.status === "IN_GAME";
   const isVoting = gameState.status === "VOTING";
   const isImpostorChoosing = gameState.status === "IMPOSTOR_CHOOSING";
-  const isImpostorGuessing = gameState?.status === "IMPOSTOR_GUESSING"; // ⬅️ Asegúrate de que esta línea exista
-  // --- RENDERIZADO ---
+  const isImpostorGuessing = gameState?.status === "IMPOSTOR_GUESSING";
   if (!userId) {
     navigate("/login");
     return null;
@@ -122,8 +98,8 @@ const ImpostorGame = () => {
         isHost={isHost}
         canStartGame={canStartGame}
         handleCopyRoomId={handleCopyRoomId}
-        handleStartGame={emitStartGame} // Usamos emitStartGame
-        handleCancelGame={emitCancelGame} // Usamos emitCancelGame
+        handleStartGame={emitStartGame}
+        handleCancelGame={emitCancelGame}
       />
     );
   }
@@ -134,7 +110,6 @@ const ImpostorGame = () => {
         gameState={gameState}
         playerState={playerState}
         isAlive={playerState?.isAlive ?? true}
-        // Formulario Guessing
         handleSubmitGuess={handleSubmitGuess}
         onSubmitGuess={onSubmitGuess}
         registerGuess={registerGuess}
@@ -145,7 +120,6 @@ const ImpostorGame = () => {
   }
 
   if (isInGame || isVoting || isImpostorChoosing || isImpostorGuessing) {
-    // Variables calculadas para GamePhaseView
     const currentTurnPlayerId = gameState.turnOrder[gameState.currentTurnIndex];
     const currentTurnPlayer = currentTurnPlayerId
       ? gameState.players.find((p) => p.id === currentTurnPlayerId)
@@ -161,18 +135,14 @@ const ImpostorGame = () => {
         isHost={isHost}
         remainingTime={remainingTime}
         maxTimeSeconds={maxTimeSeconds}
-        // Fases de juego
         isInGame={isInGame}
         isVoting={isVoting}
         isImpostorChoosing={isImpostorChoosing}
         isImpostorGuessing={isImpostorGuessing}
-        // Turno
         currentTurnPlayer={currentTurnPlayer}
         isMyTurn={isMyTurn}
-        // Emisiones
-        handleVote={emitSubmitVote} // Renombrado a handleVote en la vista para mantener la semántica
-        handleImpostorTarget={emitChooseTarget} // Renombrado para la vista
-        // Formulario Clue
+        handleVote={emitSubmitVote}
+        handleImpostorTarget={emitChooseTarget}
         handleSubmitClue={handleSubmit}
         onSubmitClue={onSubmitClue}
         registerClue={register}
@@ -180,12 +150,11 @@ const ImpostorGame = () => {
         myClue={myClue}
         myVoteTarget={myVoteTarget}
         impostorTarget={impostorTarget}
-        // 🔑 NUEVO: Formulario Guess (ADIVINANZA DEL IMPOSTOR)
         handleSubmitGuess={handleSubmitGuess}
         onSubmitGuess={onSubmitGuess}
         registerGuess={registerGuess}
         errorsGuess={errorsGuess}
-        myGuessSubmitted={myGuessSubmitted} // Estado para deshabilitar el formulario
+        myGuessSubmitted={myGuessSubmitted}
       />
     );
   }

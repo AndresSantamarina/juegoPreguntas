@@ -29,25 +29,22 @@ const GamePhaseView = ({
   isImpostorGuessing,
   currentTurnPlayer,
   isMyTurn,
-  handleVote, // Función de emisión
-  handleImpostorTarget, // Función de emisión
+  handleVote,
+  handleImpostorTarget,
   handleSubmitClue,
   onSubmitClue,
   registerClue,
   errorsClue,
   myVoteTarget,
   impostorTarget,
-  // 🔑 NUEVAS PROPS DE FORMULARIO DE ADIVINANZA
   handleSubmitGuess,
   onSubmitGuess,
   registerGuess,
   errorsGuess,
-  myGuessSubmitted, // Usamos este estado de ImpostorGame
+  myGuessSubmitted,
 }) => {
   const isAlive = playerState?.isAlive ?? true;
   const myLives = playerState?.lives ?? 3;
-
-  // Variables calculadas de rol y palabras
   const isMyKeyword =
     gameState.myRole === "INNOCENT" ? gameState.myKeyword : null;
   const displayedWords = gameState.words?.map((word) => ({
@@ -62,7 +59,6 @@ const GamePhaseView = ({
         {isInGame && " Fase de Pistas 🗣️"}
         {isVoting && " Fase de Votación 🗳️"}
         {isImpostorChoosing && " Fase de Ataque 🔪"}
-        {/* 🔑 NUEVO: Título para la última oportunidad */}
         {isImpostorGuessing && " ¡Última Oportunidad! 🚨"}
       </h1>
 
@@ -224,7 +220,6 @@ const GamePhaseView = ({
               </Card.Body>
             </Card>
           )}
-          {/* 🚀 NUEVO BLOQUE: Panel de Adivinanza del Impostor */}
           {isImpostorGuessing && gameState.myRole === "IMPOSTOR" && isAlive && (
             <Card className="shadow border-danger mb-3">
               <Card.Body>
@@ -354,7 +349,7 @@ const GamePhaseView = ({
               ) : isImpostorChoosing ? (
                 <ListGroup>
                   {gameState.players
-                    ?.filter((p) => p.isAlive && p.id !== user?.id) // Filtramos al impostor para que no se elijaasdad
+                    ?.filter((p) => p.isAlive && p.id !== user?.id)
                     .map((p) => {
                       const isTarget = impostorTarget === p.id;
                       const isDisabled =
