@@ -21,7 +21,28 @@ const GuessingView = ({
   errorsGuess,
   myGuessSubmitted,
 }) => {
-  const isPlayerGuessed = playerState?.guessGiven || myGuessSubmitted;
+  // const isPlayerGuessed = playerState?.guessGiven || myGuessSubmitted;
+  const myUserId = playerState?.id?.toString();
+  const currentTurnId =
+    gameState.turnOrder?.[gameState.currentTurnIndex]?.toString();
+
+  // Utilizamos la variable segura 'myUserId'
+  const isMyTurn = currentTurnId && myUserId && currentTurnId === myUserId;
+  // Un jugador solo puede enviar si es su turno Y aún no ha adivinado en esta sub-ronda.
+  const canSubmit = isMyTurn && !playerState?.guessGiven;
+  // 🛑 AÑADE ESTOS LOGS DE DEPURACIÓN
+  console.log("--- ESTADO DE TURNO (GuessingView) ---");
+  console.log("Mi ID (myUserId):", myUserId, " | Tipo:", typeof myUserId);
+  console.log("Índice de Turno (Index):", gameState.currentTurnIndex);
+  console.log(
+    "ID de Turno (currentTurnId):",
+    currentTurnId,
+    " | Tipo:",
+    typeof currentTurnId
+  );
+  console.log("Es Mi Turno (isMyTurn):", isMyTurn);
+  console.log("¿Puedo Enviar? (canSubmit):", canSubmit);
+  // ------------------------------------
 
   return (
     <Container className="mainSection py-4">
@@ -55,7 +76,7 @@ const GuessingView = ({
                       required: "Debes ingresar una palabra.",
                     })}
                     isInvalid={!!errorsGuess.guess}
-                    disabled={isPlayerGuessed || !isAlive}
+                    disabled={!canSubmit || !isAlive}
                   />
                   <Form.Control.Feedback type="invalid">
                     {errorsGuess.guess?.message}
@@ -65,11 +86,15 @@ const GuessingView = ({
                   variant="warning"
                   type="submit"
                   className="w-100 fw-bold"
-                  disabled={isPlayerGuessed || !isAlive}
+                  disabled={!canSubmit || !isAlive}
                 >
-                  {isPlayerGuessed
-                    ? "Esperando al Otro Jugador..."
-                    : "Enviar Adivinanza"}
+                  {
+                    canSubmit
+                      ? "Enviar Adivinanza"
+                      : playerState?.guessGiven // Si no puede enviar (canSubmit=false) y ya envió:
+                      ? "Esperando al Otro Jugador..."
+                      : "Espera tu Turno..." // Si no puede enviar (canSubmit=false) y no ha enviado:
+                  }
                 </Button>
                 {!isAlive && (
                   <Alert variant="danger" className="text-center mt-2">

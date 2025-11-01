@@ -71,7 +71,7 @@ export const useGameSocket = (roomId, userId, navigate) => {
         maxTimeSeconds
     ]);
 
-    // Función central para actualizar el estado del juegoasdasd
+    // Función central para actualizar el estado del juegoasdasdasdaasd
     const handleRoomUpdate = useCallback((data, isInitialLoad = false) => {
         console.log('[LOG STATE] Antes de actualizar. Turn Index PREVIO:', gameState.currentTurnIndex);
         const { room: roomData, myRole, myKeyword } = data;
@@ -86,7 +86,7 @@ export const useGameSocket = (roomId, userId, navigate) => {
                 currentTurnIndex: roomData.currentTurnIndex ?? -1,
                 turnStartTime: roomData.turnStartTime || null,
                 turnDuration: roomData.turnDuration || TURN_TIME_MS,
-                words: roomData.words || prev.words,
+                words: roomData.words || prev.words || [],
                 myRole: myRole || prev.myRole,
                 myKeyword: myKeyword || prev.myKeyword,
             };
@@ -183,6 +183,24 @@ export const useGameSocket = (roomId, userId, navigate) => {
                     words: data.words || [],
                     status: 'IMPOSTOR_GUESSING' // Asumo que este es el estado del backendasd
                 }));
+            },
+            'guess_submitted': (data) => {
+
+                // 🔑 NUEVA LÓGICA: Si el turno se ha reseteado al índice 0
+                // (y no era el primer turno), es una señal de que AMBOS FALLARON
+                const isGuessingRestart = data.currentTurnIndex === 0 && gameState.currentTurnIndex === 1; // Ajusta el 1 a la cantidad de jugadores -1 que tengas
+
+                if (isGuessingRestart) {
+                    setMyGuessSubmitted(false); // <--- REINICIA ESTADO LOCAL
+                }
+
+                setGameState(prev => ({
+                    ...prev,
+                    // Sobrescribir el estado con los nuevos datos de la sala
+                    players: data.players || prev.players,
+                    ...data // Esto sobrescribe otras propiedades (currentTurnIndex)
+                }));
+                Swal.fire({ title: "Adivinanza Recibida", text: data.message, icon: "info", timer: 2000, showConfirmButton: false });
             },
             'round_new': (data) => {
                 Swal.fire({
@@ -349,9 +367,12 @@ export const useGameSocket = (roomId, userId, navigate) => {
         const guessText = guessedWord.toUpperCase().trim();
         emitEvent('submitGuess', { guessedWord: guessText }, (response) => {
             if (response.success) {
-                setMyGuessSubmitted(true);
+                // ❌ ELIMINAR ESTA LÍNEA (Dejar que el 'guess_submitted' listener haga el trabajo)
+                // setMyGuessSubmitted(true); // <--- QUITAR
+
                 if (!response.isFinished) {
-                    Swal.fire({ title: "Adivinanza Enviada", text: "Esperando la adivinanza del otro jugador...", icon: "info", timer: 2000, showConfirmButton: false });
+                    // Usa el playerState para el mensaje local
+                    Swal.fire({ title: "Adivinanza Enviada", text: "Esperando el broadcast del juego...", icon: "info", timer: 2000, showConfirmButton: false });
                 }
             } else {
                 Swal.fire("Error", response.message || "No se pudo enviar la adivinanza.", "error");
@@ -377,6 +398,10 @@ export const useGameSocket = (roomId, userId, navigate) => {
         });
     };
 
+    console.log("------------------- INFO CRÍTICA DEL HOOK -------------------");
+    console.log("ID LOCAL PASADA (userId):", userId, " | Tipo:", typeof userId);
+    console.log("Contenido de gameState.players:", gameState.players); // << LOG MÁS IMPORTANTE
+
     // 6. Valores devueltos por el hook
     return {
         gameState,
@@ -386,7 +411,7 @@ export const useGameSocket = (roomId, userId, navigate) => {
         remainingTime, // Para el Timer de UI
 
         // Datos derivados para UI (simplifica ImpostorGame.jsx)
-        playerState: gameState.players.find((p) => p.id === userId),
+        playerState: gameState.players?.find((p) => p.id?.toString() === userId.toString()),
         isHost: gameState.players.find((p) => p.id === userId)?.isHost || false,
         canStartGame: gameState.players.length >= 3,
 
