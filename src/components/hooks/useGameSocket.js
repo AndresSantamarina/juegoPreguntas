@@ -251,7 +251,15 @@ export const useGameSocket = (roomId, userId, navigate) => {
             showCancelButton: true, confirmButtonText: "Sí, Cancelar",
         }).then((result) => {
             if (result.isConfirmed) {
-                emitEvent("cancelGame", {});
+                // ✅ Llamada al socket que envía el evento 'cancelGame' al backend
+                emitEvent("cancelGame", {}, (response) => {
+                    // Si el host cancela y la respuesta del backend es éxito, navega.
+                    if (response.success) {
+                        navigate("/impostor");
+                    } else {
+                        Swal.fire("Error", response.message || "No se pudo cancelar la sala.", "error");
+                    }
+                });
             }
         });
     };

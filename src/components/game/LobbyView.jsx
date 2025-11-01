@@ -23,7 +23,7 @@ const LobbyView = ({
 
   return (
     <Container className="mainSection py-5">
-      <h1 className="text-center mb-4 text-primary fw-bold">
+      <h1 className="text-center mb-4 text-dark fw-bold">
         Sala de Espera: {roomId}
       </h1>
 

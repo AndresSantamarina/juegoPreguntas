@@ -16,8 +16,6 @@ const ImpostorHome = () => {
     formState: { errors },
   } = useForm();
   const [loading, setLoading] = useState(false);
-
-  // --- Lógica para CREAR PARTIDA ---
   const handleCreateRoom = async (categoryName) => {
     if (!isConnected) {
       Swal.fire("Error", "No conectado al servidor de juego.", "error");
@@ -46,7 +44,6 @@ const ImpostorHome = () => {
     );
   };
 
-  // --- Lógica para UNIRSE a PARTIDA ---
   const handleJoinRoom = async (data) => {
     const { roomId } = data;
 
@@ -78,9 +75,7 @@ const ImpostorHome = () => {
 
   return (
     <Container className="mainSection my-5">
-      <h1 className="text-center mb-4">
-        El Impostor: El Juego de las Palabras
-      </h1>
+      <h1 className="text-center mb-4">El Impostor</h1>
 
       <Card className="shadow-lg p-4 mb-5">
         <Card.Title className="text-center h3 mb-4">
@@ -88,17 +83,14 @@ const ImpostorHome = () => {
         </Card.Title>
         <div className="text-start">
           <p>
-            <strong>Objetivo:</strong> Descubrir quién es el Impostor (o si eres
-            el Impostor, evitar ser descubierto).
+            <strong>Objetivo:</strong> sobrevivir.
           </p>
           <ul>
+            <li>Cada jugador, excepto uno, recibirá la misma palabra clave.</li>
+            <li>El Impostor no recibe ninguna palabra clave.</li>
             <li>
-              Cada jugador, excepto uno, recibirá la misma **Palabra Clave**.
-            </li>
-            <li>El **Impostor** no recibe ninguna palabra clave.</li>
-            <li>
-              Por turnos, cada jugador dirá una **palabra de una sola palabra**
-              que esté relacionada con la Palabra Clave.
+              Por turnos, cada jugador dirá una palabra que esté relacionada con
+              la Palabra Clave.
             </li>
             <li>
               Los jugadores "normales" deben decir una palabra que demuestre que
@@ -112,23 +104,18 @@ const ImpostorHome = () => {
               Si un jugador dice una palabra que no tiene relación o parece
               sospechosa, puede ser votado.
             </li>
-            <li>
-              El juego termina cuando el Impostor es descubierto o cuando los
-              jugadores "normales" pierden todas sus vidas por votar
-              incorrectamente o se les acaba el tiempo.
-            </li>
+            <li>El juego termina cuando queda un solo jugador.</li>
           </ul>
         </div>
       </Card>
 
       <Row className="g-4">
-        {/* Componente Crear Partida */}
         <Col md={6}>
           <Card className="h-100 shadow-sm border-success">
             <Card.Body className="d-flex flex-column justify-content-center align-items-center p-4">
-              <Card.Title className="h4">Crear Partida Nueva</Card.Title>
+              <Card.Title className="h4">Crear Partida</Card.Title>
               <Card.Text className="text-center mb-4">
-                Sé el anfitrión y genera un ID de sala único para invitar a tus
+                Sé el host y genera un ID de sala único para invitar a tus
                 amigos.
               </Card.Text>
               <Button
@@ -148,7 +135,6 @@ const ImpostorHome = () => {
           </Card>
         </Col>
 
-        {/* Componente Unirse a Partida */}
         <Col md={6}>
           <Card className="h-100 shadow-sm border-primary">
             <Card.Body className="p-4">
@@ -160,7 +146,7 @@ const ImpostorHome = () => {
                   <Form.Label>Ingresa el ID de la Sala</Form.Label>
                   <Form.Control
                     type="text"
-                    placeholder="Ej: A1B2C3"
+                    placeholder="Ej: ABCD"
                     {...register("roomId", {
                       required: "El ID de la sala es obligatorio",
                       pattern: {
