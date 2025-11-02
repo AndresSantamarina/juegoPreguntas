@@ -177,21 +177,13 @@ const GamePhaseView = ({
                   <Form onSubmit={handleSubmitClue(onSubmitClue)}>
                     <Form.Group className="mb-3">
                       <Form.Label className="fw-bold">
-                        Ingresa tu pista (una sola palabra)
+                        Ingresa tu pista
                       </Form.Label>
                       <Form.Control
                         type="text"
                         placeholder="Ej: Estrella"
                         {...registerClue("clue", {
                           required: "La pista es obligatoria",
-                          pattern: {
-                            value: /^\S+$/,
-                            message: "Debe ser una sola palabra",
-                          },
-                          maxLength: {
-                            value: 15,
-                            message: "Máximo 15 caracteres",
-                          },
                         })}
                         isInvalid={!!errorsClue.clue}
                         disabled={
@@ -241,10 +233,6 @@ const GamePhaseView = ({
                         placeholder="Ingresa tu adivinanza (Ej: GLOBO)"
                         {...registerGuess("guess", {
                           required: "La adivinanza es obligatoria",
-                          pattern: {
-                            value: /^\S+$/,
-                            message: "Debe ser una sola palabra",
-                          },
                         })}
                         isInvalid={!!errorsGuess.guess}
                         disabled={myGuessSubmitted || !isAlive}

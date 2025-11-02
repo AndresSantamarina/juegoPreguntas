@@ -117,8 +117,27 @@ export const useGameSocket = (roomId, userId, navigate) => {
                     currentTurnUsername: data.nextTurnUsername,
                 }));
             },
+            // --- NUEVO HANDLER AÑADIDO AQUÍ ---
+            'clues_complete_standby': (data) => {
+                // 1. Mostrar SweetAlert con el tiempo de espera
+                Swal.fire({
+                    title: "Pistas Completas!",
+                    text: data.message,
+                    icon: "success",
+                    timer: data.delay, // Usamos el 'delay' que enviamos desde el backend (5000ms)
+                    showConfirmButton: false
+                });
+
+                // 2. Actualizar el estado del juego para reflejar las últimas pistas
+                // (Mantiene el status='IN_GAME' para que el componente GamePhaseView siga mostrando el tablero de pistas)
+                setGameState(prev => ({ ...prev, ...data }));
+
+                // 3. Opcional: Limpiar el estado del input de pista
+                setMyClue("");
+            },
+            // --- FIN DEL NUEVO HANDLER ---
             'voting_started': (data) => {
-                Swal.fire({ title: "¡Votación!", text: data.message, icon: "info", timer: 3000, showConfirmButton: false });
+                Swal.fire({ title: "¡Votación!", text: data.message, icon: "info", timer: 3500, showConfirmButton: false });
                 setGameState(prev => ({ ...prev, ...data }));
                 setMyClue(""); setMyVoteTarget(null); setImpostorTarget(null);
             },
@@ -129,7 +148,7 @@ export const useGameSocket = (roomId, userId, navigate) => {
                         title: "¡Ataque del Impostor!",
                         text: data.message,
                         icon: isImpostor ? "warning" : "error",
-                        timer: isImpostor ? null : 5000,
+                        timer: isImpostor ? null : 8000,
                         showConfirmButton: isImpostor
                     });
                     return ({ ...prev, ...data });
@@ -166,18 +185,18 @@ export const useGameSocket = (roomId, userId, navigate) => {
                     players: data.players || prev.players,
                     ...data
                 }));
-                Swal.fire({ title: "Adivinanza Recibida", text: data.message, icon: "info", timer: 2000, showConfirmButton: false });
+                Swal.fire({ title: "Adivinanza Recibida", text: data.message, icon: "info", timer: 3500, showConfirmButton: false });
             },
             'round_new': (data) => {
                 Swal.fire({
                     title: "¡Nueva Ronda!", text: data.message || `Comienza la Ronda ${data.currentRound}.`,
-                    icon: "info", timer: 3000, showConfirmButton: false
+                    icon: "info", timer: 3500, showConfirmButton: false
                 });
                 setMyClue(""); setMyVoteTarget(null); setMyGuessSubmitted(false); setImpostorTarget(null);
                 setGameState(prev => ({ ...prev, ...data }));
             },
             'turn_skipped_timeout': (data) => {
-                Swal.fire({ title: "¡Turno Perdido!", text: data.message, icon: "warning", timer: 2000, showConfirmButton: false });
+                Swal.fire({ title: "¡Turno Perdido!", text: data.message, icon: "warning", timer: 3500, showConfirmButton: false });
             },
             'guessing_next_attempt': (data) => {
                 Swal.fire({ title: "¡Ambos Fallaron!", text: `La palabra correcta era: ${data.secretWord}. Tienen otra oportunidad.`, icon: "error", confirmButtonText: "¡Adivinar de Nuevo!", });
@@ -307,7 +326,7 @@ export const useGameSocket = (roomId, userId, navigate) => {
                 emitEvent('chooseTarget', { targetId: targetUserId }, (response) => {
                     if (response.success) {
                         setImpostorTarget(targetUserId);
-                        Swal.fire({ title: "¡Ataque Enviado!", text: response.message, icon: "success", timer: 2000, showConfirmButton: false });
+                        Swal.fire({ title: "¡Ataque Enviado!", text: response.message, icon: "success", timer: 3500, showConfirmButton: false });
                     } else {
                         Swal.fire("Error", response.message || "No se pudo elegir el objetivo.", "error");
                     }
@@ -323,7 +342,7 @@ export const useGameSocket = (roomId, userId, navigate) => {
             if (response.success) {
 
                 if (!response.isFinished) {
-                    Swal.fire({ title: "Adivinanza Enviada", text: "Esperando el broadcast del juego...", icon: "info", timer: 2000, showConfirmButton: false });
+                    Swal.fire({ title: "Adivinanza Enviada", text: "Esperando el broadcast del juego...", icon: "info", timer: 3500, showConfirmButton: false });
                 }
             } else {
                 Swal.fire("Error", response.message || "No se pudo enviar la adivinanza.", "error");
@@ -338,7 +357,7 @@ export const useGameSocket = (roomId, userId, navigate) => {
             if (response.success) {
                 setMyGuessSubmitted(true);
                 if (response.currentStatus !== 'FINISHED') {
-                    Swal.fire({ title: "Adivinanza Enviada", text: response.message, icon: "info", timer: 2000, showConfirmButton: false });
+                    Swal.fire({ title: "Adivinanza Enviada", text: response.message, icon: "info", timer: 3500, showConfirmButton: false });
                 }
             } else {
                 Swal.fire("Error", response.message || "No se pudo enviar la adivinanza.", "error");
@@ -374,7 +393,7 @@ export const useGameSocket = (roomId, userId, navigate) => {
 
         handleCopyRoomId: () => {
             navigator.clipboard.writeText(roomId).then(() =>
-                Swal.fire({ title: "Copiado ✅", text: `ID de sala (${roomId}) copiado.`, icon: "success", timer: 1500, showConfirmButton: false })
+                Swal.fire({ title: "Copiado ✅", text: `ID de sala (${roomId}) copiado.`, icon: "success", timer: 3500, showConfirmButton: false })
             );
         },
     };
