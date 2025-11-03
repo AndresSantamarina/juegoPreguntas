@@ -49,7 +49,9 @@ const GamePhaseView = ({
     gameState.myRole === "INNOCENT" ? gameState.myKeyword : null;
   const displayedWords = gameState.words?.map((word) => ({
     word: word,
-    isKeyword: word === isMyKeyword,
+    isKeyword: isMyKeyword
+      ? word.toUpperCase() === isMyKeyword.toUpperCase()
+      : false,
   }));
 
   return (

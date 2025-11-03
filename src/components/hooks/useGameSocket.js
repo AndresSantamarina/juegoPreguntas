@@ -64,7 +64,6 @@ export const useGameSocket = (roomId, userId, navigate) => {
     ]);
 
     const handleRoomUpdate = useCallback((data, isInitialLoad = false) => {
-        console.log('[LOG STATE] Antes de actualizar. Turn Index PREVIO:', gameState.currentTurnIndex);
         const { room: roomData, myRole, myKeyword } = data;
 
         setGameState(prev => {
@@ -81,7 +80,6 @@ export const useGameSocket = (roomId, userId, navigate) => {
                 myRole: myRole || prev.myRole,
                 myKeyword: myKeyword || prev.myKeyword,
             };
-            console.log('[LOG STATE] Después de actualizar. Turn Index NUEVO:', newGameState.currentTurnIndex);
             return newGameState;
         });
 
@@ -117,25 +115,19 @@ export const useGameSocket = (roomId, userId, navigate) => {
                     currentTurnUsername: data.nextTurnUsername,
                 }));
             },
-            // --- NUEVO HANDLER AÑADIDO AQUÍ ---
             'clues_complete_standby': (data) => {
-                // 1. Mostrar SweetAlert con el tiempo de espera
                 Swal.fire({
                     title: "Pistas Completas!",
                     text: data.message,
                     icon: "success",
-                    timer: data.delay, // Usamos el 'delay' que enviamos desde el backend (5000ms)
+                    timer: data.delay,
                     showConfirmButton: false
                 });
 
-                // 2. Actualizar el estado del juego para reflejar las últimas pistas
-                // (Mantiene el status='IN_GAME' para que el componente GamePhaseView siga mostrando el tablero de pistas)
                 setGameState(prev => ({ ...prev, ...data }));
 
-                // 3. Opcional: Limpiar el estado del input de pista
                 setMyClue("");
             },
-            // --- FIN DEL NUEVO HANDLER ---
             'voting_started': (data) => {
                 Swal.fire({ title: "¡Votación!", text: data.message, icon: "info", timer: 3500, showConfirmButton: false });
                 setGameState(prev => ({ ...prev, ...data }));
@@ -208,8 +200,8 @@ export const useGameSocket = (roomId, userId, navigate) => {
                 const winnerRole = data.winner;
                 let icon = (winnerRole === "Innocents" && myRole === "INNOCENT") || (winnerRole === "Impostor" && myRole === "IMPOSTOR") ? "success" : "error";
                 Swal.fire({
-                    title: "¡Juego Terminado! 🎉", html: `Ganador: <strong>${data.winner}</strong><br/>${data.message}`,
-                    icon: icon, confirmButtonText: "Volver a la Home",
+                    title: "¡Juego Terminado! 🎉", html: `${data.message}`,
+                    icon: icon, confirmButtonText: "Volver a Home",
                 }).then(() => navigate("/impostor"));
                 setGameState(prev => ({ ...prev, status: "FINISHED" }));
             },
@@ -270,9 +262,7 @@ export const useGameSocket = (roomId, userId, navigate) => {
             showCancelButton: true, confirmButtonText: "Sí, Cancelar",
         }).then((result) => {
             if (result.isConfirmed) {
-                // ✅ Llamada al socket que envía el evento 'cancelGame' al backend
                 emitEvent("cancelGame", {}, (response) => {
-                    // Si el host cancela y la respuesta del backend es éxito, navega.
                     if (response.success) {
                         navigate("/impostor");
                     } else {
@@ -342,7 +332,7 @@ export const useGameSocket = (roomId, userId, navigate) => {
             if (response.success) {
 
                 if (!response.isFinished) {
-                    Swal.fire({ title: "Adivinanza Enviada", text: "Esperando el broadcast del juego...", icon: "info", timer: 3500, showConfirmButton: false });
+                    Swal.fire({ title: "Adivinanza Enviada", text: "Esperando...", icon: "info", timer: 3500, showConfirmButton: false });
                 }
             } else {
                 Swal.fire("Error", response.message || "No se pudo enviar la adivinanza.", "error");
