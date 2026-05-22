@@ -1,72 +1,33 @@
 @import url("https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap");
 @import url("https://fonts.googleapis.com/css2?family=Rubik:ital,wght@0,300..900;1,300..900&display=swap");
 
-h1,
-h2,
-h3,
-h4 {
-  font-family: "Montserrat", sans-serif;
-}
+@import "tailwindcss";
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
-.navbar {
-  font-family: "Montserrat", sans-serif;
-}
-
-footer {
-  font-family: "Montserrat", sans-serif;
-  font-size: small;
-}
-
-p,
-button,
-form {
-  font-family: "Rubik", sans-serif;
-}
-
-#root {
-  display: flex;
-  flex-direction: column;
-  min-height: 100vh;
-}
-
-.mainSection {
-  flex-grow: 1;
-}
-
-.cardContainer {
-  background-color: #fff;
-  border-radius: 12px;
-  padding: 2rem;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-  margin-bottom: 2rem;
-  transition: transform 0.2s ease;
-  &:hover {
-    transform: translateY(-4px);
+@layer base {
+  html,
+  body {
+    @apply h-full text-gray-800 bg-gray-50;
   }
-
-  p.fw-bold {
-    font-size: 1.2rem;
-    color: #333;
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    font-family: "Montserrat";
   }
-
-  .btn {
-    width: 100%;
-    margin-top: 0.5rem;
-  }
-
-  .opcion {
-    border: 1px solid #e0e0e0;
-    border-radius: 8px;
-    padding: 1rem;
-    background-color: #f9f9f9;
-    transition: background-color 0.2s;
-    &:hover {
-      background-color: #f1f1f1;
-    }
+  p,
+  span,
+  button,
+  input,
+  select {
+    font-family: "Rubik";
   }
 }
-
-.loader {
+.loader-custom {
   width: fit-content;
   font-size: 17px;
   font-family: monospace;
@@ -80,19 +41,20 @@ form {
   animation: l10-0 2s infinite cubic-bezier(1, 175, 0.5, 175);
   color: rgb(189, 0, 0);
 }
-.loader::before {
+.loader-custom::before {
   content: "Loading";
   display: inline-block;
   animation: l10-2 2s infinite;
 }
-.loader::after {
+.loader-custom::after {
   content: "";
   position: absolute;
   width: 34px;
   height: 28px;
   top: 110%;
   left: calc(50% - 16px);
-  background: linear-gradient(
+  background:
+    linear-gradient(
         90deg,
         #0000 12px,
         #f92033 0 22px,

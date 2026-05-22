@@ -1,13 +1,10 @@
 import {
-  Container,
-  Row,
-  Col,
-  Card,
-  Button,
-  ListGroup,
-  Alert,
-} from "react-bootstrap";
-import { Clipboard, PersonFill, ArrowRightCircle } from "react-bootstrap-icons";
+  Clipboard,
+  PersonFill,
+  ArrowRightCircle,
+  XCircle,
+} from "react-bootstrap-icons";
+import { motion } from "framer-motion";
 
 const LobbyView = ({
   gameState,
@@ -19,86 +16,76 @@ const LobbyView = ({
   handleStartGame,
   handleCancelGame,
 }) => {
-  const hostPlayer = gameState.players.find((p) => p.isHost);
-
   return (
-    <Container className="mainSection py-5">
-      <h1 className="text-center mb-4 text-dark fw-bold">
-        Sala de Espera: {roomId}
-      </h1>
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      className="max-w-xl mx-auto py-10 px-4"
+    >
+      <div className="bg-white p-8 rounded-2xl shadow-xl border border-gray-100">
+        <h1 className="text-3xl font-black text-center text-gray-800 mb-6">
+          Sala: <span className="text-blue-600">{roomId}</span>
+        </h1>
 
-      <Row className="justify-content-center">
-        <Col md={8} lg={6}>
-          <Card className="shadow-lg border-primary rounded-4">
-            <Card.Header className="bg-primary text-white text-center fw-bold fs-4">
-              Invitá a tus amigos
-              <Button
-                variant="outline-light"
-                size="sm"
-                className="ms-3"
-                onClick={handleCopyRoomId}
+        <div className="flex justify-between items-center bg-gray-50 p-4 rounded-lg mb-6">
+          <span className="font-semibold text-gray-600">Compartir sala:</span>
+          <button
+            onClick={handleCopyRoomId}
+            className="flex items-center gap-2 bg-blue-100 text-blue-700 px-4 py-2 rounded-lg font-bold hover:bg-blue-200 transition"
+          >
+            <Clipboard size={18} /> Copiar ID
+          </button>
+        </div>
+
+        <h3 className="text-lg font-bold mb-4 text-gray-700">
+          Jugadores ({gameState.players.length}/8)
+        </h3>
+        <ul className="space-y-3 mb-8">
+          {gameState.players.map((p) => (
+            <li
+              key={p.id}
+              className="flex items-center justify-between bg-white border border-gray-200 p-3 rounded-xl shadow-sm"
+            >
+              <span className="flex items-center gap-2 font-bold">
+                <PersonFill className="text-blue-500" /> {p.name}{" "}
+                {p.id === user?.id && "(Tú)"}
+              </span>
+              {p.isHost && (
+                <span className="text-[10px] bg-green-100 text-green-700 px-2 py-1 rounded-full uppercase font-bold">
+                  Anfitrión
+                </span>
+              )}
+            </li>
+          ))}
+        </ul>
+
+        <div className="flex flex-col gap-3">
+          {isHost ? (
+            <>
+              <button
+                onClick={handleStartGame}
+                disabled={!canStartGame}
+                className={`w-full py-4 rounded-xl font-black text-lg transition ${canStartGame ? "bg-green-600 hover:bg-green-700 text-white" : "bg-gray-200 text-gray-400"}`}
               >
-                <Clipboard size={18} />
-              </Button>
-            </Card.Header>
-            <Card.Body>
-              <h5 className="text-center mb-3 text-secondary">
-                Jugadores Conectados: ({gameState.players.length} / Mínimo: 3)
-              </h5>
-
-              <ListGroup className="mb-4">
-                {gameState.players.map((p) => (
-                  <ListGroup.Item
-                    key={p.id}
-                    className="d-flex justify-content-between align-items-center"
-                  >
-                    <PersonFill size={20} className="me-2 text-primary" />
-                    <span className="fw-bold">
-                      {p.name} {p.id === user?.id && "(Tú)"}
-                    </span>
-                    {p.isHost && (
-                      <span className="badge bg-success">Anfitrión</span>
-                    )}
-                  </ListGroup.Item>
-                ))}
-              </ListGroup>
-
-              <div className="d-grid gap-2">
-                {isHost ? (
-                  <>
-                    <Button
-                      variant="success"
-                      size="lg"
-                      onClick={handleStartGame}
-                      disabled={!canStartGame}
-                      className="fw-bold py-2 shadow"
-                    >
-                      <ArrowRightCircle size={20} className="me-2" />
-                      {canStartGame
-                        ? "Comenzar Partida"
-                        : `Faltan ${3 - gameState.players.length} jugadores...`}
-                    </Button>
-                    <Button
-                      variant="outline-danger"
-                      onClick={handleCancelGame}
-                      className="py-2"
-                    >
-                      Cancelar Sala
-                    </Button>
-                  </>
-                ) : (
-                  <Alert variant="info" className="text-center">
-                    Esperando a que el Anfitrión ({hostPlayer?.name || "..."})
-                    inicie el juego.
-                  </Alert>
-                )}
-              </div>
-            </Card.Body>
-          </Card>
-        </Col>
-      </Row>
-    </Container>
+                {canStartGame
+                  ? "COMENZAR PARTIDA"
+                  : "Faltan jugadores (Mín. 3)"}
+              </button>
+              <button
+                onClick={handleCancelGame}
+                className="w-full py-3 rounded-xl text-red-500 font-bold hover:bg-red-50 transition"
+              >
+                Cancelar Sala
+              </button>
+            </>
+          ) : (
+            <div className="bg-blue-50 text-blue-700 p-4 rounded-xl text-center font-bold">
+              Esperando al anfitrión...
+            </div>
+          )}
+        </div>
+      </div>
+    </motion.div>
   );
 };
-
 export default LobbyView;

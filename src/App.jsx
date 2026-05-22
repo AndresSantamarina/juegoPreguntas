@@ -1,5 +1,4 @@
 import "./App.css";
-import "bootstrap/dist/css/bootstrap.min.css";
 import MenuNav from "./components/common/MenuNav";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Inicio from "./pages/Inicio";
@@ -15,6 +14,8 @@ import { AuthProvider } from "./context/AuthContext";
 import LoginForm from "./components/LoginForm";
 import Register from "./components/Register";
 import ImpostorGame from "./components/game/ImpostorGame";
+import { Toaster } from "react-hot-toast";
+import Ruleta from "./pages/Ruleta";
 
 function App() {
   return (
@@ -26,6 +27,7 @@ function App() {
           <Route path="/register" element={<Register />} />
           <Route path="/login" element={<LoginForm />} />
           <Route exact path="/agregar" element={<Agregar></Agregar>}></Route>
+          <Route exact path="/ruleta" element={<Ruleta />} />
           <Route
             exact
             path="/preguntas"

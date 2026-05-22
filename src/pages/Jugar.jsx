@@ -1,15 +1,14 @@
-import { Button, Container } from "react-bootstrap";
-import CardPregunta from "../components/CardPregunta";
+import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
+import toast from "react-hot-toast";
+import winSound from "../assets/win.mp3";
+import loseSound from "../assets/lose.mp3";
+import CardPregunta from "../components/CardPregunta";
 import {
   listarPreguntasPorNivelUsuario,
   obtenerNiveles,
-} from "../helpers/queries.js";
-import { useEffect, useState } from "react";
-import winSound from "../assets/win.mp3";
-import loseSound from "../assets/lose.mp3";
-import { useAuth } from "../../src/context/AuthContext.jsx";
-import Swal from "sweetalert2";
+} from "../helpers/queries";
+import { useAuth } from "../context/AuthContext";
 
 const Jugar = () => {
   const { nivel: nivelParam } = useParams();
@@ -18,158 +17,84 @@ const Jugar = () => {
 
   const [preguntas, setPreguntas] = useState([]);
   const [niveles, setNiveles] = useState([]);
-  const [respuestaCorrecta, setRespuestaCorrecta] = useState(null);
   const [mostrarLoader, setMostrarLoader] = useState(true);
-  const [nivelSeleccionado, setNivelSeleccionado] = useState(!!nivelParam);
 
   useEffect(() => {
-    const cargarDatos = async () => {
+    if (!user) {
+      toast.error("Debes iniciar sesión para jugar");
+      navigate("/login");
+      return;
+    }
+    const cargar = async () => {
+      setMostrarLoader(true);
       try {
-        setMostrarLoader(true);
-
-        if (!user?.id) {
-          throw new Error("Por favor inicia sesión");
+        const niv = await obtenerNiveles();
+        setNiveles(niv);
+        if (nivelParam) {
+          const preg = await listarPreguntasPorNivelUsuario(nivelParam);
+          setPreguntas(preg);
         }
-
-        const [nivelesData, preguntasData] = await Promise.all([
-          obtenerNiveles(),
-          nivelParam
-            ? listarPreguntasPorNivelUsuario(nivelParam)
-            : Promise.resolve([]),
-        ]);
-
-        setNiveles(nivelesData);
-        if (nivelParam) setPreguntas(preguntasData);
-      } catch (error) {
-        console.error("Error al cargar datos:", error);
-        if (
-          error.message.includes("401") ||
-          error.message.includes("autenticado")
-        ) {
-          Swal.fire({
-            title: "Sesión expirada",
-            text: "Por favor, inicia sesión nuevamente",
-            icon: "warning",
-          });
-          navigate("/login");
-        } else {
-          Swal.fire({
-            title: "Error",
-            text: error.message || "Error al cargar datos",
-            icon: "error",
-          });
-        }
-        setNiveles([]);
-        setPreguntas([]);
+      } catch (err) {
+        toast.error("Error cargando los datos");
       } finally {
         setMostrarLoader(false);
       }
     };
+    cargar();
+  }, [nivelParam, user, navigate]);
 
-    cargarDatos();
-  }, [nivelParam, user?.id]);
-
-  const listarPreguntas = async (nivel) => {
-    try {
-      setMostrarLoader(true);
-
-      if (!user || !user.id) {
-        throw new Error("Usuario no autenticado");
-      }
-
-      if (!nivel) {
-        throw new Error("Nivel no especificado");
-      }
-
-      const respuesta = await listarPreguntasPorNivelUsuario(nivel);
-      setPreguntas(respuesta);
-    } catch (error) {
-      console.error("Error al listar preguntas:", error);
-      if (error.message.includes("401")) {
-        Swal.fire({
-          title: "Sesión expirada",
-          text: "Por favor, inicia sesión nuevamente",
-          icon: "warning",
-        });
-        navigate("/login");
-      } else {
-        setPreguntas([]);
-      }
-    } finally {
-      setMostrarLoader(false);
-    }
+  const handleSelectOption = (opcion) => {
+    const audio = new Audio(opcion.correcta ? winSound : loseSound);
+    audio.play().catch((e) => console.log("Audio play failed:", e));
   };
-
-  const cargarNiveles = async () => {
-    try {
-      if (!user || !user.id) return;
-
-      const respuesta = await obtenerNiveles();
-      setNiveles(respuesta);
-    } catch (error) {
-      console.error("Error al cargar niveles:", error);
-      setNiveles([]);
-    }
-  };
-
-  const handleSelectOption = (opcion, index) => {
-    if (opcion.correcta) {
-      setRespuestaCorrecta(index);
-      const audioCorrecto = new Audio(winSound);
-      audioCorrecto.play();
-    } else {
-      const audioIncorrecto = new Audio(loseSound);
-      audioIncorrecto.play();
-    }
-  };
-
-  const mostrarComponente = mostrarLoader ? (
-    <div className="text-center m-5 p-5">
-      <span className="loader"></span>
-    </div>
-  ) : nivelSeleccionado ? (
-    preguntas.length === 0 ? (
-      <p className="text-center lead">No hay preguntas en este nivel.</p>
-    ) : (
-      <section className="my-5">
-        {preguntas.map((pregunta, index) => (
-          <CardPregunta
-            key={pregunta.id}
-            pregunta={pregunta}
-            respuestaCorrecta={respuestaCorrecta === index ? index : null}
-            onSelectOption={(opcion) => handleSelectOption(opcion, index)}
-          ></CardPregunta>
-        ))}
-      </section>
-    )
-  ) : (
-    <p className="text-center lead">Por favor, seleccione un nivel.</p>
-  );
 
   return (
-    <Container className="mainSection">
-      <section className="my-5">
-        <h1 className="text-center my-5">JUGAR</h1>
-        <h4 className="text-center my-3">
-          Elija el nivel en el que quiere jugar
-        </h4>
-        <article className="my-5 text-center">
-          {niveles.map((nivel) => (
-            <Button
-              className="btn btn-dark m-2"
-              key={nivel}
-              onClick={() => {
-                navigate(`/jugar/${nivel}`);
-                setNivelSeleccionado(true);
-              }}
-            >
-              Nivel {nivel}
-            </Button>
-          ))}
-        </article>
-      </section>
-      {mostrarComponente}
-    </Container>
+    <div className="max-w-4xl mx-auto py-8 px-4">
+      <h1 className="text-4xl font-black text-center text-blue-600 mb-4 tracking-wide">
+        MODO TRIVIA
+      </h1>
+      <h4 className="text-center text-gray-500 font-medium mb-8">
+        Elige tu nivel y demuestra lo que sabes
+      </h4>
+
+      <div className="flex flex-wrap justify-center gap-3 mb-10">
+        {niveles.map((nivel) => (
+          <button
+            key={nivel}
+            onClick={() => navigate(`/jugar/${nivel}`)}
+            className={`px-6 py-2 font-bold rounded-full transition-transform hover:scale-105 ${nivelParam === nivel.toString() ? "bg-blue-600 text-white shadow-lg shadow-blue-200" : "bg-gray-800 text-white hover:bg-gray-700"}`}
+          >
+            Nivel {nivel}
+          </button>
+        ))}
+      </div>
+
+      {mostrarLoader ? (
+        <div className="flex justify-center py-10">
+          <span className="loader-custom"></span>
+        </div>
+      ) : nivelParam ? (
+        preguntas.length === 0 ? (
+          <p className="text-center text-gray-500 text-xl font-medium py-10">
+            No hay preguntas para este nivel.
+          </p>
+        ) : (
+          <div className="space-y-6">
+            {preguntas.map((pregunta, index) => (
+              <CardPregunta
+                key={pregunta._id || index}
+                pregunta={pregunta}
+                onSelectOption={handleSelectOption}
+              />
+            ))}
+          </div>
+        )
+      ) : (
+        <p className="text-center text-gray-500 text-xl font-medium py-10">
+          Selecciona un nivel de la parte superior para empezar a jugar.
+        </p>
+      )}
+    </div>
   );
 };
 

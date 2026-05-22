@@ -1,135 +1,68 @@
 import axios from "axios";
 
-const URL_Preguntas = import.meta.env.VITE_API_PREGUNTAS;
+const URL_PREGUNTAS = import.meta.env.VITE_API_PREGUNTAS;
+const apiPreguntas = axios.create({
+  baseURL: URL_PREGUNTAS,
+});
 
-const getAuthHeaders = () => {
+apiPreguntas.interceptors.request.use((config) => {
   const token = localStorage.getItem('token');
-  if (!token) {
-    console.error("No se encontró token en localStorage");
-    throw new Error("No autenticado");
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
   }
-  return {
-    'Authorization': `Bearer ${token}`,
-    'Content-Type': 'application/json'
-  };
-};
+  return config;
+});
 
 export const leerPreguntasUsuarioAPI = async () => {
   try {
-    const respuesta = await fetch(`${URL_Preguntas}`, {
-      headers: getAuthHeaders()
-    });
-    if (!respuesta.ok) throw new Error('Error al leer las preguntas del usuario');
-    return await respuesta.json();
+    const { data } = await apiPreguntas.get('/');
+    return data;
   } catch (error) {
-    console.error(error);
-    throw error;
+    throw new Error(error.response?.data?.message || 'Error al leer las preguntas');
   }
 };
 
 export const obtenerPreguntaAPI = async (id) => {
   try {
-    const token = localStorage.getItem('token');
-    const respuesta = await fetch(`${URL_Preguntas}/${id}`, {
-      headers: {
-        'Authorization': `Bearer ${token}`
-      }
-    });
-    if (!respuesta.ok) throw new Error(`Error al obtener la pregunta con id ${id}`);
-    return await respuesta.json();
+    const { data } = await apiPreguntas.get(`/${id}`);
+    return data;
   } catch (error) {
-    console.error(error);
-    throw error;
+    throw new Error(error.response?.data?.message || `Error al obtener la pregunta`);
   }
 };
 
 export const crearPreguntaAPI = async (preguntaNueva) => {
   try {
-    const token = localStorage.getItem('token');
-
-    const respuesta = await fetch(URL_Preguntas, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${token}`
-      },
-      body: JSON.stringify(preguntaNueva)
-    });
-
-    const data = await respuesta.json();
-
-    if (!respuesta.ok) {
-      throw new Error(data.message || 'Error al crear la pregunta');
-    }
-
+    const { data } = await apiPreguntas.post('/', preguntaNueva);
     return data;
   } catch (error) {
-    console.error("Error en crearPreguntaAPI:", error);
-    throw error;
+    throw new Error(error.response?.data?.message || 'Error al crear la pregunta');
   }
 };
 
 export const editarPreguntaAPI = async (preguntaModificada, id) => {
   try {
-    const respuesta = await fetch(`${URL_Preguntas}/${id}`, {
-      method: "PUT",
-      headers: getAuthHeaders(),
-      body: JSON.stringify(preguntaModificada)
-    });
-    if (!respuesta.ok) throw new Error(`Error al editar la pregunta con id ${id}`);
-    return respuesta;
+    const { data, status } = await apiPreguntas.put(`/${id}`, preguntaModificada);
+    return { data, status };
   } catch (error) {
-    console.error(error);
-    throw error;
+    throw new Error(error.response?.data?.message || `Error al editar la pregunta`);
   }
 };
 
 export const eliminarPreguntaAPI = async (id) => {
   try {
-    const token = localStorage.getItem("token");
-
-    const respuesta = await fetch(`${URL_Preguntas}/${id}`, {
-      method: "DELETE",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${token}`,
-      },
-    });
-
-    if (!respuesta.ok) {
-      let errorMsg = `Error al eliminar la pregunta con id ${id}`;
-      try {
-        const errorData = await respuesta.json();
-        errorMsg = errorData.message || errorMsg;
-      } catch { }
-      throw new Error(errorMsg);
-    }
-
-    if (respuesta.status === 204) return { message: "Pregunta eliminada correctamente", status: 204 };
-
-    return await respuesta.json();
-
+    const { data, status } = await apiPreguntas.delete(`/${id}`);
+    return { message: data.message || "Pregunta eliminada", status };
   } catch (error) {
-    console.error(error);
-    throw error;
+    throw new Error(error.response?.data?.message || `Error al eliminar la pregunta`);
   }
 };
 
 export const obtenerNiveles = async () => {
   try {
-    const token = localStorage.getItem("token");
-    const response = await axios.get(`${URL_Preguntas}/niveles`, {
-      headers: {
-        Authorization: `Bearer ${token}`
-      }
-    });
-    return response.data;
+    const { data } = await apiPreguntas.get('/niveles');
+    return data;
   } catch (error) {
-    console.error("Error en obtenerNiveles:", {
-      message: error.message,
-      response: error.response?.data,
-      status: error.response?.status
-    });
     throw new Error(error.response?.data?.message || "Error al obtener los niveles");
   }
 };
@@ -137,19 +70,9 @@ export const obtenerNiveles = async () => {
 export const listarPreguntasPorNivelUsuario = async (nivel) => {
   try {
     if (!nivel) throw new Error('Nivel no especificado');
-
-    const respuesta = await fetch(`${URL_Preguntas}/nivel/${nivel}`, {
-      headers: getAuthHeaders()
-    });
-
-    if (!respuesta.ok) {
-      const errorData = await respuesta.json();
-      throw new Error(errorData.message || `Error al listar preguntas del nivel ${nivel}`);
-    }
-
-    return await respuesta.json();
+    const { data } = await apiPreguntas.get(`/nivel/${nivel}`);
+    return data;
   } catch (error) {
-    console.error(error);
-    throw error;
+    throw new Error(error.response?.data?.message || `Error al listar preguntas del nivel ${nivel}`);
   }
 };
