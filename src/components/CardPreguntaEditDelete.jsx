@@ -1,85 +1,76 @@
-import { Button, Col, Container, Row } from "react-bootstrap";
 import { Link } from "react-router-dom";
-import Swal from "sweetalert2";
+import toast from "react-hot-toast";
+import { motion } from "framer-motion";
 import {
   eliminarPreguntaAPI,
   listarPreguntasPorNivelUsuario,
-} from "../helpers/queries.js";
+} from "../helpers/queries";
 
 const CardPreguntaEditDelete = ({ pregunta, setPreguntas, nivel }) => {
-  const borrarPregunta = () => {
-    Swal.fire({
-      title: "¿Estás seguro de eliminar la pregunta?",
-      text: "No se puede revertir este proceso",
-      icon: "warning",
-      showCancelButton: true,
-      confirmButtonColor: "#d33",
-      cancelButtonColor: "#3085d6",
-      confirmButtonText: "Borrar",
-      cancelButtonText: "Salir",
-    }).then(async (result) => {
-      if (result.isConfirmed) {
-        try {
-          const respuesta = await eliminarPreguntaAPI(pregunta._id);
-
-          Swal.fire({
-            title: "Pregunta eliminada!",
-            text:
-              respuesta.message || "La pregunta fue eliminada correctamente",
-            icon: "success",
-          });
-
-          const preguntasActualizadas = await listarPreguntasPorNivelUsuario(
-            nivel
-          );
-          setPreguntas(preguntasActualizadas);
-        } catch (error) {
-          Swal.fire({
-            title: "Ocurrió un error",
-            text: error.message || "La pregunta no pudo ser eliminada",
-            icon: "error",
-          });
-        }
+  const borrarPregunta = async () => {
+    if (
+      window.confirm(
+        "¿Estás seguro de eliminar esta pregunta? Esta acción no se puede deshacer.",
+      )
+    ) {
+      try {
+        await eliminarPreguntaAPI(pregunta._id);
+        toast.success("Pregunta eliminada");
+        const actualizadas = await listarPreguntasPorNivelUsuario(nivel);
+        setPreguntas(actualizadas);
+      } catch (error) {
+        toast.error(error.message || "Error al eliminar");
       }
-    });
+    }
   };
 
+  const opciones = [
+    pregunta.opcionUno,
+    pregunta.opcionDos,
+    pregunta.opcionTres,
+    pregunta.opcionCorrecta,
+  ];
+
   return (
-    <div className="my-5">
-      <div className="cardContainer">
-        <p className="fw-bold fs-4 text-center">{pregunta.pregunta}</p>
-        <Container>
-          <Row className="text-center justify-content-center align-items-stretch">
-            {[
-              pregunta.opcionUno,
-              pregunta.opcionDos,
-              pregunta.opcionTres,
-              pregunta.opcionCorrecta,
-            ].map((op, i) => (
-              <Col key={i} className="my-3 col-sm-6 col-md-6">
-                <div className="opcion h-100">
-                  <p>
-                    <span className="fw-bold">{i + 1}- </span>
-                    {op}
-                  </p>
-                </div>
-              </Col>
-            ))}
-          </Row>
-          <div className="text-center mt-3">
-            <Link
-              className="btn btn-warning mx-2"
-              to={`/preguntas/editar/${pregunta._id}`}
+    <motion.div
+      layout
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="mb-6"
+    >
+      <div className="bg-white p-6 rounded-xl shadow hover:shadow-lg transition-shadow border border-gray-100">
+        <p className="font-bold text-xl text-center text-gray-800 mb-6">
+          {pregunta.pregunta}
+        </p>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
+          {opciones.map((op, i) => (
+            <div
+              key={i}
+              className="p-3 bg-gray-50 border border-gray-200 rounded-lg text-gray-700"
             >
-              Editar
-            </Link>
-            <Button variant="danger" className="mx-2" onClick={borrarPregunta}>
-              Eliminar
-            </Button>
-          </div>
-        </Container>
+              <span className="font-bold mr-2">{i + 1}.</span>
+              {op}
+            </div>
+          ))}
+        </div>
+
+        <div className="flex justify-center space-x-4">
+          <Link
+            to={`/preguntas/editar/${pregunta._id}`}
+            className="bg-yellow-500 hover:bg-yellow-600 text-white font-bold py-2 px-6 rounded-lg transition-colors"
+          >
+            Editar
+          </Link>
+          <button
+            onClick={borrarPregunta}
+            className="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-6 rounded-lg transition-colors"
+          >
+            Eliminar
+          </button>
+        </div>
       </div>
-    </div>
+    </motion.div>
   );
 };
 

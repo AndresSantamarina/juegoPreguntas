@@ -1,8 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Form, Button, Alert, Container } from "react-bootstrap";
 import { useAuth } from "../context/AuthContext";
-import Swal from "sweetalert2";
+import { motion } from "framer-motion";
 
 const LoginForm = () => {
   const [name, setName] = useState("");
@@ -20,53 +19,68 @@ const LoginForm = () => {
     }
 
     const res = await login({ name, password });
-
     if (res.success) {
-      Swal.fire({
-        title: "Éxito",
-        text: "Bienvenido!",
-        icon: "success",
-      });
       navigate("/");
     } else {
-      setError(res.message || "Error desconocido al iniciar sesión");
-      console.error("Error de login:", res.message);
-      Swal.fire({
-        title: "Error",
-        text: error.message || "Error",
-        icon: "error",
-      });
+      setError(res.message || "Error al iniciar sesión");
     }
   };
 
   return (
-    <Container className="mt-5 mainSection" style={{ maxWidth: 400 }}>
-      <h2 className="mb-4">Login</h2>
-      {error && <Alert variant="danger">{error}</Alert>}
-      <Form onSubmit={handleSubmit}>
-        <Form.Group className="mb-3">
-          <Form.Label>Nombre</Form.Label>
-          <Form.Control
+    <motion.div
+      initial={{ opacity: 0, scale: 0.95 }}
+      animate={{ opacity: 1, scale: 1 }}
+      className="max-w-md mx-auto mt-12 bg-white p-8 rounded-xl shadow-lg border border-gray-100"
+    >
+      <h2 className="text-3xl font-bold text-center text-gray-800 mb-6">
+        Login
+      </h2>
+
+      {error && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          className="bg-red-100 text-red-700 p-3 rounded-lg mb-4 text-sm font-medium"
+        >
+          {error}
+        </motion.div>
+      )}
+
+      <form onSubmit={handleSubmit} className="space-y-5">
+        <div>
+          <label className="block text-sm font-semibold text-gray-700 mb-1">
+            Nombre
+          </label>
+          <input
             type="text"
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
             value={name}
             onChange={(e) => setName(e.target.value)}
             required
+            placeholder="Ingresa tu nombre"
           />
-        </Form.Group>
-        <Form.Group className="mb-3">
-          <Form.Label>Contraseña</Form.Label>
-          <Form.Control
+        </div>
+        <div>
+          <label className="block text-sm font-semibold text-gray-700 mb-1">
+            Contraseña
+          </label>
+          <input
             type="password"
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             required
+            placeholder="••••••••"
           />
-        </Form.Group>
-        <Button variant="primary" type="submit" className="w-100">
+        </div>
+        <button
+          type="submit"
+          className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-lg transition-transform hover:scale-[1.02] active:scale-95"
+        >
           Iniciar sesión
-        </Button>
-      </Form>
-    </Container>
+        </button>
+      </form>
+    </motion.div>
   );
 };
 

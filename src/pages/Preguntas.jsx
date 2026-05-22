@@ -1,105 +1,86 @@
-import { Button, Container } from "react-bootstrap";
-import CardPreguntaEditDelete from "../components/CardPreguntaEditDelete";
+import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
+import toast from "react-hot-toast";
+import CardPreguntaEditDelete from "../components/CardPreguntaEditDelete";
 import {
   listarPreguntasPorNivelUsuario,
   obtenerNiveles,
 } from "../helpers/queries";
-import { useEffect, useState } from "react";
 
 const Preguntas = () => {
   const { nivel } = useParams();
   const navigate = useNavigate();
-
   const [preguntas, setPreguntas] = useState([]);
   const [niveles, setNiveles] = useState([]);
   const [mostrarLoader, setMostrarLoader] = useState(true);
-  const [nivelSeleccionado, setNivelSeleccionado] = useState(false);
+
+  useEffect(() => {
+    obtenerNiveles()
+      .then(setNiveles)
+      .catch(() => toast.error("Error al cargar niveles"));
+  }, []);
 
   useEffect(() => {
     if (nivel) {
-      listarPreguntas();
-      setNivelSeleccionado(true);
+      setMostrarLoader(true);
+      listarPreguntasPorNivelUsuario(nivel)
+        .then(setPreguntas)
+        .catch(() => toast.error("Error al cargar preguntas"))
+        .finally(() => setMostrarLoader(false));
     } else {
       setPreguntas([]);
-      setNivelSeleccionado(false);
       setMostrarLoader(false);
     }
   }, [nivel]);
-
-  useEffect(() => {
-    cargarNiveles();
-  }, [nivel]);
-
-  const listarPreguntas = async () => {
-    if (!nivel) return;
-
-    try {
-      setMostrarLoader(true);
-      const respuesta = await listarPreguntasPorNivelUsuario(nivel);
-      setPreguntas(respuesta);
-    } catch (error) {
-      console.error(error);
-      setPreguntas([]);
-    } finally {
-      setMostrarLoader(false);
-    }
-  };
-
-  const cargarNiveles = async () => {
-    try {
-      const respuesta = await obtenerNiveles();
-      setNiveles(respuesta);
-    } catch (error) {
-      console.error(error);
-    }
-  };
-
-  const mostrarComponente = mostrarLoader ? (
-    <div className="text-center m-5 p-3">
-      <span className="loader"></span>
-    </div>
-  ) : nivelSeleccionado ? (
-    preguntas.length === 0 ? (
-      <p className="text-center lead">No hay preguntas en este nivel.</p>
-    ) : (
-      <section className="my-5">
-        {preguntas.map((pregunta) => (
-          <CardPreguntaEditDelete
-            key={pregunta.id}
-            pregunta={pregunta}
-            setPreguntas={setPreguntas}
-            nivel={nivel}
-          ></CardPreguntaEditDelete>
-        ))}
-      </section>
-    )
-  ) : (
-    <p className="text-center lead">Por favor, seleccione un nivel.</p>
-  );
 
   return (
-    <Container className="mainSection">
-      <section className="my-5">
-        <h1 className="text-center my-5">LISTADO</h1>
-        <h4 className="text-center my-3">Editar o eliminar preguntas</h4>
-        <article className="my-5 text-center">
-          {niveles.map((nivel) => (
-            <Button
-              className="btn btn-dark m-2"
-              key={nivel}
-              onClick={() => {
-                navigate(`/preguntas/${nivel}`);
-                setNivelSeleccionado(true);
-              }}
-            >
-              Nivel {nivel}
-            </Button>
-          ))}
-        </article>
-      </section>
-      {mostrarComponente}
-    </Container>
+    <div className="max-w-4xl mx-auto py-8 px-4">
+      <h1 className="text-3xl font-black text-center text-gray-800 mb-4 tracking-wide">
+        GESTOR DE PREGUNTAS
+      </h1>
+      <h4 className="text-center text-gray-500 font-medium mb-8">
+        Selecciona un nivel para editar o eliminar
+      </h4>
+
+      <div className="flex flex-wrap justify-center gap-3 mb-10">
+        {niveles.map((n) => (
+          <button
+            key={n}
+            onClick={() => navigate(`/preguntas/${n}`)}
+            className={`px-4 py-2 font-bold rounded-lg transition-colors ${nivel === n.toString() ? "bg-blue-600 text-white" : "bg-gray-200 text-gray-700 hover:bg-gray-300"}`}
+          >
+            Nivel {n}
+          </button>
+        ))}
+      </div>
+
+      {mostrarLoader ? (
+        <div className="flex justify-center py-10">
+          <span className="loader-custom"></span>
+        </div>
+      ) : nivel ? (
+        preguntas.length === 0 ? (
+          <p className="text-center text-gray-500 text-lg">
+            No hay preguntas creadas en el Nivel {nivel}.
+          </p>
+        ) : (
+          <div className="space-y-6">
+            {preguntas.map((pregunta) => (
+              <CardPreguntaEditDelete
+                key={pregunta._id}
+                pregunta={pregunta}
+                setPreguntas={setPreguntas}
+                nivel={nivel}
+              />
+            ))}
+          </div>
+        )
+      ) : (
+        <p className="text-center text-gray-500 text-lg">
+          Aún no has seleccionado un nivel.
+        </p>
+      )}
+    </div>
   );
 };
 

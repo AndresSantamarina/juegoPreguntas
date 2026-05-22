@@ -1,11 +1,10 @@
-import { useState, useContext } from "react";
-import { Form, Button, Container, Alert, Card } from "react-bootstrap";
-import { AuthContext } from "../context/AuthContext";
+import { useState } from "react";
+import { useAuth } from "../context/AuthContext";
 import { useNavigate } from "react-router-dom";
-import Swal from "sweetalert2";
+import { motion } from "framer-motion";
 
 const Register = () => {
-  const { register } = useContext(AuthContext);
+  const { register } = useAuth();
   const navigate = useNavigate();
 
   const [formData, setFormData] = useState({ name: "", password: "" });
@@ -20,56 +19,69 @@ const Register = () => {
     e.preventDefault();
     const res = await register(formData);
     if (res.success) {
-      Swal.fire({
-        title: "Éxito",
-        text: "Usuario creado correctamente",
-        icon: "success",
-      });
       navigate("/");
     } else {
-      setError(res.message);
-      Swal.fire({
-        title: "Error",
-        text: error.message || "Error al crear el usuario",
-        icon: "error",
-      });
+      setError(res.message || "Error al crear el usuario");
     }
   };
 
   return (
-    <Container className="mt-5 mainSection" style={{ maxWidth: "500px" }}>
-      <Card className="p-4 shadow">
-        <h2 className="mb-3 text-center">Registrarse</h2>
-        {error && <Alert variant="danger">{error}</Alert>}
-        <Form onSubmit={handleSubmit}>
-          <Form.Group className="mb-3">
-            <Form.Label>Nombre</Form.Label>
-            <Form.Control
-              type="text"
-              name="name"
-              placeholder="Juan Pérez"
-              value={formData.name}
-              onChange={handleChange}
-              required
-            />
-          </Form.Group>
-          <Form.Group className="mb-3">
-            <Form.Label>Contraseña</Form.Label>
-            <Form.Control
-              type="password"
-              name="password"
-              placeholder="*******"
-              value={formData.password}
-              onChange={handleChange}
-              required
-            />
-          </Form.Group>
-          <Button variant="primary" type="submit" className="w-100">
-            Crear cuenta
-          </Button>
-        </Form>
-      </Card>
-    </Container>
+    <motion.div
+      initial={{ opacity: 0, scale: 0.95 }}
+      animate={{ opacity: 1, scale: 1 }}
+      className="max-w-md mx-auto mt-12 bg-white p-8 rounded-xl shadow-lg border border-gray-100"
+    >
+      <h2 className="text-3xl font-bold text-center text-gray-800 mb-6">
+        Registrarse
+      </h2>
+
+      {error && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          className="bg-red-100 text-red-700 p-3 rounded-lg mb-4 text-sm font-medium"
+        >
+          {error}
+        </motion.div>
+      )}
+
+      <form onSubmit={handleSubmit} className="space-y-5">
+        <div>
+          <label className="block text-sm font-semibold text-gray-700 mb-1">
+            Nombre
+          </label>
+          <input
+            type="text"
+            name="name"
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
+            placeholder="Juan Pérez"
+            value={formData.name}
+            onChange={handleChange}
+            required
+          />
+        </div>
+        <div>
+          <label className="block text-sm font-semibold text-gray-700 mb-1">
+            Contraseña
+          </label>
+          <input
+            type="password"
+            name="password"
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
+            placeholder="••••••••"
+            value={formData.password}
+            onChange={handleChange}
+            required
+          />
+        </div>
+        <button
+          type="submit"
+          className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-lg transition-transform hover:scale-[1.02] active:scale-95"
+        >
+          Crear cuenta
+        </button>
+      </form>
+    </motion.div>
   );
 };
 

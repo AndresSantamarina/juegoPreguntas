@@ -3,7 +3,6 @@ import Swal from 'sweetalert2';
 import { useSocket } from '../../context/SocketContext.jsx';
 
 const TURN_TIME_MS = 30000;
-
 const initialGameState = {
     status: "LOBBY",
     players: [],
@@ -13,6 +12,8 @@ const initialGameState = {
     turnStartTime: null,
     turnDuration: TURN_TIME_MS,
     words: [],
+    wrongGuesses: [],
+    secretWord: null,
     myRole: null,
     myKeyword: null,
 };
@@ -64,7 +65,6 @@ export const useGameSocket = (roomId, userId, navigate) => {
     ]);
 
     const handleRoomUpdate = useCallback((data, isInitialLoad = false) => {
-        console.log('[LOG STATE] Antes de actualizar. Turn Index PREVIO:', gameState.currentTurnIndex);
         const { room: roomData, myRole, myKeyword } = data;
 
         setGameState(prev => {
@@ -78,10 +78,11 @@ export const useGameSocket = (roomId, userId, navigate) => {
                 turnStartTime: roomData.turnStartTime || null,
                 turnDuration: roomData.turnDuration || TURN_TIME_MS,
                 words: roomData.words || prev.words || [],
+                wrongGuesses: roomData.wrongGuesses || prev.wrongGuesses || [],
+                secretWord: roomData.secretWord || prev.secretWord || null,
                 myRole: myRole || prev.myRole,
                 myKeyword: myKeyword || prev.myKeyword,
             };
-            console.log('[LOG STATE] Después de actualizar. Turn Index NUEVO:', newGameState.currentTurnIndex);
             return newGameState;
         });
 
@@ -110,32 +111,23 @@ export const useGameSocket = (roomId, userId, navigate) => {
                 emitGetGameState();
             },
             'turn_advanced': (data) => {
-                console.log('[LOG TURN] Turno avanzado. Index:', data.currentTurnIndex, 'Jugador:', data.nextTurnUsername);
                 setGameState(prev => ({
                     ...prev,
                     ...data,
                     currentTurnUsername: data.nextTurnUsername,
                 }));
             },
-            // --- NUEVO HANDLER AÑADIDO AQUÍ ---
             'clues_complete_standby': (data) => {
-                // 1. Mostrar SweetAlert con el tiempo de espera
                 Swal.fire({
                     title: "Pistas Completas!",
                     text: data.message,
                     icon: "success",
-                    timer: data.delay, // Usamos el 'delay' que enviamos desde el backend (5000ms)
+                    timer: data.delay,
                     showConfirmButton: false
                 });
-
-                // 2. Actualizar el estado del juego para reflejar las últimas pistas
-                // (Mantiene el status='IN_GAME' para que el componente GamePhaseView siga mostrando el tablero de pistas)
                 setGameState(prev => ({ ...prev, ...data }));
-
-                // 3. Opcional: Limpiar el estado del input de pista
                 setMyClue("");
             },
-            // --- FIN DEL NUEVO HANDLER ---
             'voting_started': (data) => {
                 Swal.fire({ title: "¡Votación!", text: data.message, icon: "info", timer: 3500, showConfirmButton: false });
                 setGameState(prev => ({ ...prev, ...data }));
@@ -156,7 +148,7 @@ export const useGameSocket = (roomId, userId, navigate) => {
             },
             'guessing_started': (data) => {
                 Swal.fire({ title: "¡Modo de 2 Jugadores!", text: data.message, icon: "warning", confirmButtonText: "Entendido" });
-                setGameState(prev => ({ ...prev, ...data, words: data.words }));
+                setGameState(prev => ({ ...prev, ...data, words: data.words, wrongGuesses: [] }));
             },
             'guessing_impostor_started': (data) => {
                 setMyGuessSubmitted(false);
@@ -175,7 +167,6 @@ export const useGameSocket = (roomId, userId, navigate) => {
             },
             'guess_submitted': (data) => {
                 const isGuessingRestart = data.currentTurnIndex === 0 && gameState.currentTurnIndex === 1;
-
                 if (isGuessingRestart) {
                     setMyGuessSubmitted(false);
                 }
@@ -183,6 +174,7 @@ export const useGameSocket = (roomId, userId, navigate) => {
                 setGameState(prev => ({
                     ...prev,
                     players: data.players || prev.players,
+                    wrongGuesses: data.wrongGuesses || prev.wrongGuesses || [],
                     ...data
                 }));
                 Swal.fire({ title: "Adivinanza Recibida", text: data.message, icon: "info", timer: 3500, showConfirmButton: false });
@@ -204,14 +196,24 @@ export const useGameSocket = (roomId, userId, navigate) => {
                 setGameState(prev => ({ ...prev, players: prev.players.map(p => ({ ...p, guessGiven: false })), ...data }));
             },
             'game_finished': (data) => {
-                const myRole = gameState.myRole;
-                const winnerRole = data.winner;
-                let icon = (winnerRole === "Innocents" && myRole === "INNOCENT") || (winnerRole === "Impostor" && myRole === "IMPOSTOR") ? "success" : "error";
+                const players = data.finalRoomState?.players || [];
+                const myPlayer = players.find(p => p.id === userId);
+                const amIImpostor = myPlayer?.isImpostor || false;
+                let won = false;
+                if (data.winner === 'Impostor' && amIImpostor) won = true;
+                if (data.winner === 'Innocents' && !amIImpostor) won = true;
+                const isTie = data.winner === 'Tie';
+
                 Swal.fire({
-                    title: "¡Juego Terminado! 🎉", html: `Ganador: <strong>${data.winner}</strong><br/>${data.message}`,
-                    icon: icon, confirmButtonText: "Volver a la Home",
+                    title: isTie ? "¡Empate!" : (won ? "¡Ganaste! 🏆" : "¡Perdiste! 💀"),
+                    html: `Ganador: <strong>${data.winner}</strong><br/><br/>${data.message}`,
+                    icon: isTie ? "info" : (won ? "success" : "error"),
+                    confirmButtonColor: isTie ? "#3b82f6" : (won ? "#10b981" : "#ef4444"),
+                    confirmButtonText: "Volver a la Home",
+                    allowOutsideClick: false
                 }).then(() => navigate("/impostor"));
-                setGameState(prev => ({ ...prev, status: "FINISHED" }));
+
+                setGameState(prev => ({ ...prev, status: "FINISHED", ...data.finalRoomState }));
             },
             'room_closed': (data) => {
                 Swal.fire({ title: "Sala Cerrada", text: data.message || "El anfitrión ha cancelado la partida.", icon: "info", confirmButtonText: "Volver a Impostor Home" }).then(() => navigate("/impostor"));
@@ -223,7 +225,7 @@ export const useGameSocket = (roomId, userId, navigate) => {
         return () => {
             listenerKeys.forEach(eventName => socket.off(eventName, handlers[eventName]));
         };
-    }, [socket, isConnected, userId, roomId, navigate]);
+    }, [socket, isConnected, userId, roomId, navigate, handleRoomUpdate, gameState.currentTurnIndex]);
 
     const emitEvent = (eventName, data, callback) => {
         const responseCallback = typeof callback === 'function' ? callback : () => { };
@@ -270,9 +272,7 @@ export const useGameSocket = (roomId, userId, navigate) => {
             showCancelButton: true, confirmButtonText: "Sí, Cancelar",
         }).then((result) => {
             if (result.isConfirmed) {
-                // ✅ Llamada al socket que envía el evento 'cancelGame' al backend
                 emitEvent("cancelGame", {}, (response) => {
-                    // Si el host cancela y la respuesta del backend es éxito, navega.
                     if (response.success) {
                         navigate("/impostor");
                     } else {
@@ -340,7 +340,6 @@ export const useGameSocket = (roomId, userId, navigate) => {
         const guessText = guessedWord.toUpperCase().trim();
         emitEvent('submitGuess', { guessedWord: guessText }, (response) => {
             if (response.success) {
-
                 if (!response.isFinished) {
                     Swal.fire({ title: "Adivinanza Enviada", text: "Esperando el broadcast del juego...", icon: "info", timer: 3500, showConfirmButton: false });
                 }

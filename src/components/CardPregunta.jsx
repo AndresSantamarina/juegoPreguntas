@@ -1,74 +1,65 @@
 import { useEffect, useState } from "react";
-import { Button, Col, Container, Row } from "react-bootstrap";
+import { motion } from "framer-motion";
 
 const CardPregunta = ({ pregunta, respuestaCorrecta, onSelectOption }) => {
   const [opciones, setOpciones] = useState([]);
   const [opcionSeleccionada, setOpcionSeleccionada] = useState(null);
-  const [opcionIncorrectaSeleccionada, setOpcionIncorrectaSeleccionada] =
-    useState(false);
 
   useEffect(() => {
-    setOpciones(shuffleOptions());
-  }, [pregunta]);
-
-  const shuffleOptions = () => {
     const opcionesArray = [
       { text: pregunta.opcionUno, correcta: false },
       { text: pregunta.opcionDos, correcta: false },
       { text: pregunta.opcionTres, correcta: false },
       { text: pregunta.opcionCorrecta, correcta: true },
-    ];
-    return opcionesArray.sort(() => Math.random() - 0.5);
-  };
+    ].sort(() => Math.random() - 0.5);
+    setOpciones(opcionesArray);
+  }, [pregunta]);
 
   const handleSelectOption = (opcion) => {
+    if (opcionSeleccionada) return;
     setOpcionSeleccionada(opcion);
     onSelectOption(opcion);
-    if (!opcion.correcta) {
-      setOpcionIncorrectaSeleccionada(true);
-    }
   };
 
-  const getButtonVariant = (opcion) => {
-    if (opcionSeleccionada !== null) {
-      if (opcion.correcta) {
-        return "success";
-      } else if (
-        opcionIncorrectaSeleccionada &&
-        opcion === opcionSeleccionada
-      ) {
-        return "danger";
-      }
-    }
-    return "dark";
+  const getButtonClass = (opcion) => {
+    const baseClass =
+      "w-full text-left p-4 rounded-lg font-medium transition-all shadow-sm border";
+    if (!opcionSeleccionada)
+      return `${baseClass} bg-white border-gray-200 text-gray-700 hover:bg-gray-50 hover:shadow-md`;
+
+    if (opcion.correcta)
+      return `${baseClass} bg-green-500 border-green-600 text-white scale-[1.02]`;
+    if (opcionSeleccionada === opcion && !opcion.correcta)
+      return `${baseClass} bg-red-500 border-red-600 text-white`;
+
+    return `${baseClass} bg-gray-100 border-gray-200 text-gray-400 opacity-50`;
   };
 
   return (
-    <div className="my-5">
-      <div className="cardContainer">
-        <p className="fw-bold fs-4 text-center">{pregunta.pregunta}</p>
-        <Container>
-          <Row className="text-center justify-content-center align-items-stretch">
-            {opciones.map((opcion, index) => (
-              <Col key={index} className="my-3 col-sm-6 col-md-6">
-                <div className="opcion h-100 d-flex flex-column justify-content-between">
-                  <p>
-                    <span className="fw-bold">{index + 1 + ")"}</span>{" "}
-                    {opcion.text}
-                  </p>
-                  <Button
-                    variant={getButtonVariant(opcion)}
-                    onClick={() => handleSelectOption(opcion, index)}
-                  >
-                    Elegir
-                  </Button>
-                </div>
-              </Col>
-            ))}
-          </Row>
-        </Container>
+    <motion.div
+      initial={{ opacity: 0, scale: 0.95 }}
+      animate={{ opacity: 1, scale: 1 }}
+      className="mb-8"
+    >
+      <div className="bg-white p-6 md:p-8 rounded-xl shadow-lg border border-gray-100">
+        <p className="font-bold text-2xl text-center text-gray-800 mb-8">
+          {pregunta.pregunta}
+        </p>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          {opciones.map((opcion, index) => (
+            <button
+              key={index}
+              onClick={() => handleSelectOption(opcion)}
+              disabled={!!opcionSeleccionada}
+              className={getButtonClass(opcion)}
+            >
+              <span className="font-bold mr-2 opacity-70">{index + 1})</span>{" "}
+              {opcion.text}
+            </button>
+          ))}
+        </div>
       </div>
-    </div>
+    </motion.div>
   );
 };
 

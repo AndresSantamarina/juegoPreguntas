@@ -1,6 +1,7 @@
 import { createContext, useContext, useState } from "react";
 import axios from "axios";
-import Swal from "sweetalert2";
+import toast from "react-hot-toast";
+
 const URL_API = import.meta.env.VITE_API_URI;
 
 export const AuthContext = createContext();
@@ -19,7 +20,7 @@ export const AuthProvider = ({ children }) => {
 
       if (!res.data.user || !res.data.user.id) {
         throw new Error(
-          "La respuesta del servidor no incluye datos de usuario válidos"
+          "La respuesta del servidor no incluye datos de usuario válidos",
         );
       }
 
@@ -31,16 +32,16 @@ export const AuthProvider = ({ children }) => {
       setUser(userData);
       localStorage.setItem("user", JSON.stringify(userData));
       localStorage.setItem("token", res.data.token);
+      toast.success("¡Bienvenido de nuevo!");
       return { success: true };
     } catch (error) {
       console.error("Error en login:", error);
-      return {
-        success: false,
-        message:
-          error.response?.data?.message ||
-          error.message ||
-          "Error al iniciar sesión",
-      };
+      const msg =
+        error.response?.data?.message ||
+        error.message ||
+        "Error al iniciar sesión";
+      toast.error(msg);
+      return { success: false, message: msg };
     }
   };
 
@@ -50,23 +51,19 @@ export const AuthProvider = ({ children }) => {
       setUser(res.data.user);
       localStorage.setItem("user", JSON.stringify(res.data.user));
       localStorage.setItem("token", res.data.token);
+      toast.success("Cuenta creada correctamente");
       return { success: true };
     } catch (error) {
-      return {
-        success: false,
-        message: error.response?.data?.message || "Error al registrar",
-      };
+      const msg = error.response?.data?.message || "Error al registrar";
+      toast.error(msg);
+      return { success: false, message: msg };
     }
   };
 
   const logout = () => {
     setUser(null);
     localStorage.clear();
-    Swal.fire({
-      title: "Éxito",
-      text: "Sesión cerrada",
-      icon: "success",
-    });
+    toast.success("Sesión cerrada");
   };
 
   return (

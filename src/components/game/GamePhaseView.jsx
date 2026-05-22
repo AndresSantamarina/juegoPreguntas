@@ -1,426 +1,171 @@
-import {
-  Container,
-  Row,
-  Col,
-  Card,
-  Form,
-  Button,
-  ListGroup,
-  Alert,
-  ProgressBar,
-  Spinner,
-} from "react-bootstrap";
-import {
-  HeartFill,
-  ClockFill,
-  XCircleFill,
-  Person,
-} from "react-bootstrap-icons";
+import { motion } from "framer-motion";
+import { HeartFill, ClockFill } from "react-bootstrap-icons";
 
 const GamePhaseView = ({
   gameState,
-  user,
   playerState,
   remainingTime,
-  maxTimeSeconds,
   isInGame,
   isVoting,
   isImpostorChoosing,
   isImpostorGuessing,
-  currentTurnPlayer,
   isMyTurn,
   handleVote,
   handleImpostorTarget,
+  registerClue,
   handleSubmitClue,
   onSubmitClue,
-  registerClue,
-  errorsClue,
+  myClue,
   myVoteTarget,
-  impostorTarget,
-  handleSubmitGuess,
   onSubmitGuess,
-  registerGuess,
-  errorsGuess,
-  myGuessSubmitted,
 }) => {
-  const isAlive = playerState?.isAlive ?? true;
-  const myLives = playerState?.lives ?? 3;
-  const isMyKeyword =
-    gameState.myRole === "INNOCENT" ? gameState.myKeyword : null;
-  const displayedWords = gameState.words?.map((word) => ({
-    word: word,
-    isKeyword: word === isMyKeyword,
-  }));
+  const isInnocent = playerState && !playerState.isImpostor;
+  const secretWord = gameState.secretWord?.trim().toUpperCase();
 
   return (
-    <Container className="mainSection py-4">
-      <h1 className="text-center mb-4 fw-bold text-danger">
-        IMPOSTOR:
-        {isInGame && " Fase de Pistas 🗣️"}
-        {isVoting && " Fase de Votación 🗳️"}
-        {isImpostorChoosing && " Fase de Ataque 🔪"}
-        {isImpostorGuessing && " ¡Última Oportunidad! 🚨"}
-      </h1>
+    <div className="max-w-4xl mx-auto py-6 px-4">
+      <div className="flex justify-between items-center bg-white p-4 rounded-xl shadow mb-6">
+        <div className="flex items-center gap-2 font-bold text-red-600">
+          <HeartFill /> Vidas: {playerState?.lives}
+        </div>
+        <div className="flex items-center gap-2 font-bold text-blue-600">
+          <ClockFill /> {remainingTime}s
+        </div>
+      </div>
+      <div className="grid grid-cols-3 md:grid-cols-4 gap-2 mb-8">
+        {gameState.words?.map((w, i) => {
+          const currentWord = w.trim().toUpperCase();
+          const isSecret = currentWord === secretWord;
+          const showHighlight = isSecret && isInnocent;
 
-      <Row className="mb-4">
-        <Col md={12} lg={4}>
-          <Card
-            className={`shadow-lg border-${
-              gameState.myRole === "IMPOSTOR" ? "danger" : "success"
-            } mb-3`}
-          >
-            <Card.Header
-              className={`text-white bg-${
-                gameState.myRole === "IMPOSTOR" ? "danger" : "success"
-              } fw-bold`}
+          return (
+            <div
+              key={i}
+              className={`p-3 rounded-lg text-center font-bold transition-all ${showHighlight ? "bg-green-500 text-white shadow-md scale-105" : "bg-gray-100 text-gray-700"}`}
             >
-              Tu Rol:{" "}
-              {gameState.myRole === "IMPOSTOR"
-                ? "🔴 EL IMPOSTOR"
-                : "🟢 INOCENTE"}
-            </Card.Header>
-            <Card.Body>
-              <h5 className="mb-3">
-                {gameState.myRole === "IMPOSTOR" ? (
-                  <>
-                    <span className="text-danger fw-bold">
-                      Tu objetivo es descubrir la palabra clave de los
-                      Inocentes.
-                    </span>
-                  </>
-                ) : (
-                  <>
-                    <span className="text-success fw-bold">
-                      Tu palabra clave está{" "}
-                      {isMyKeyword ? "resaltada en verde" : "por ser asignada"}{" "}
-                      en el tablero.
-                    </span>
-                  </>
-                )}
-              </h5>
-              <hr />
-              <div className="d-flex justify-content-between align-items-center">
-                <span className="fw-bold">
-                  <HeartFill size={20} className="text-danger me-1" /> Vidas
-                  Restantes:
+              {w}
+            </div>
+          );
+        })}
+      </div>
+      <div className="mb-8">
+        <h3 className="text-xl font-bold text-gray-700 mb-4 text-center">
+          Pistas de la ronda
+        </h3>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+          {gameState.players
+            .filter((p) => p.isAlive)
+            .map((p) => (
+              <div
+                key={p.id}
+                className="p-3 bg-white border border-gray-200 rounded-xl shadow-sm flex flex-col justify-center items-center text-center"
+              >
+                <span className="font-bold text-sm text-gray-800 mb-1">
+                  {p.name}
                 </span>
-                <div>
-                  {[...Array(3)].map((_, i) => (
-                    <HeartFill
+                {p.clueGiven ? (
+                  <span className="text-blue-600 font-black text-lg">
+                    {p.clueGiven}
+                  </span>
+                ) : (
+                  <span className="text-gray-400 text-xs italic mt-1">
+                    Pensando...
+                  </span>
+                )}
+              </div>
+            ))}
+        </div>
+      </div>
+
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        className="bg-white p-6 rounded-2xl shadow-xl"
+      >
+        {isInGame && isMyTurn && !myClue && (
+          <form
+            onSubmit={handleSubmitClue(onSubmitClue)}
+            className="flex gap-2"
+          >
+            <input
+              {...registerClue("clue", { required: true })}
+              className="flex-1 p-3 border rounded-lg outline-none focus:ring-2 focus:ring-blue-400"
+              placeholder="Escribe tu pista aquí..."
+              autoComplete="off"
+            />
+            <button className="bg-blue-600 hover:bg-blue-700 text-white px-6 rounded-lg font-bold transition-colors">
+              Enviar
+            </button>
+          </form>
+        )}
+        {isVoting && (
+          <div className="grid gap-2">
+            {gameState.players
+              .filter((p) => p.isAlive)
+              .map((p) => (
+                <button
+                  key={p.id}
+                  onClick={() => handleVote(p.id)}
+                  disabled={myVoteTarget}
+                  className={`p-4 rounded-xl border-2 font-bold transition-all ${myVoteTarget === p.id ? "border-blue-500 bg-blue-50" : "border-gray-100 hover:bg-gray-50"}`}
+                >
+                  {p.name}
+                </button>
+              ))}
+          </div>
+        )}
+        {isImpostorChoosing && !isInnocent && (
+          <div className="grid gap-2">
+            <h3 className="text-xl font-bold text-center text-red-600 mb-2">
+              Empate. Elige a quién eliminar:
+            </h3>
+            {gameState.players
+              .filter((p) => p.isAlive && p.id !== playerState.id)
+              .map((p) => (
+                <button
+                  key={p.id}
+                  onClick={() => handleImpostorTarget(p.id)}
+                  className="p-4 bg-red-100 text-red-700 rounded-xl font-bold hover:bg-red-200 transition-colors"
+                >
+                  Eliminar a {p.name}
+                </button>
+              ))}
+          </div>
+        )}
+        {isImpostorGuessing && (
+          <div className="mt-2 border-t pt-4">
+            {!isInnocent ? (
+              <div className="flex flex-col gap-4">
+                <h3 className="text-xl font-black text-center text-yellow-600">
+                  ¡ÚLTIMA OPORTUNIDAD!
+                </h3>
+                <p className="text-center font-bold text-gray-600 mb-2">
+                  Toca la palabra clave para ganar la partida:
+                </p>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                  {gameState.words?.map((w, i) => (
+                    <button
                       key={i}
-                      size={24}
-                      className={`mx-1 ${
-                        i < myLives
-                          ? "text-danger"
-                          : "text-secondary opacity-50"
-                      }`}
-                    />
+                      onClick={() => onSubmitGuess({ guess: w })}
+                      className="p-3 bg-yellow-100 hover:bg-yellow-500 border border-transparent hover:border-yellow-600 hover:text-white text-yellow-800 rounded-lg font-bold transition-all shadow-sm hover:scale-105 active:scale-95"
+                    >
+                      {w}
+                    </button>
                   ))}
                 </div>
               </div>
-              {!isAlive && (
-                <Alert variant="danger" className="text-center mt-3 fw-bold">
-                  <XCircleFill size={20} className="me-2" /> ¡Eliminado! Estás
-                  fuera de la partida.
-                </Alert>
-              )}
-            </Card.Body>
-          </Card>
-          <Card className="shadow mb-3">
-            <Card.Body>
-              <div className="d-flex justify-content-between align-items-center mb-2">
-                <span className="fw-bold text-primary">
-                  <ClockFill size={20} className="me-2" />
-                  Tiempo: {remainingTime}s
-                </span>
-                <span className="fw-bold text-dark">
-                  <Person size={20} className="me-2" />
-                  Ronda: {gameState.currentRound}
-                </span>
+            ) : (
+              <div className="p-4 bg-gray-50 rounded-xl text-center border border-gray-200">
+                <h3 className="text-lg font-bold text-gray-700">
+                  El impostor ha sido descubierto y está intentando adivinar la
+                  palabra clave...
+                </h3>
               </div>
-              <ProgressBar
-                now={remainingTime}
-                max={maxTimeSeconds}
-                variant={remainingTime < 10 ? "danger" : "primary"}
-                animated={isInGame}
-              />
-              {isInGame && (
-                <p className="mt-2 text-center">
-                  Turno de:
-                  <span
-                    className={`fw-bold ms-1 text-${
-                      isMyTurn ? "danger" : "dark"
-                    }`}
-                  >
-                    {currentTurnPlayer?.name || "Esperando..."}
-                  </span>
-                </p>
-              )}
-              {isVoting && (
-                <Alert variant="info" className="text-center mt-2">
-                  ¡VOTA AHORA! Elige al Impostor del tablero de la derecha.
-                </Alert>
-              )}
-            </Card.Body>
-          </Card>
-          {isInGame && (
-            <Card className="shadow border-info mb-3">
-              <Card.Body>
-                <Card.Title className="text-info">Tu Pista</Card.Title>
-                {playerState?.clueGiven ? (
-                  <Alert variant="success" className="text-center">
-                    Pista enviada:{" "}
-                    <span className="fw-bold">{playerState.clueGiven}</span>.
-                    Esperando a los demás.
-                  </Alert>
-                ) : (
-                  <Form onSubmit={handleSubmitClue(onSubmitClue)}>
-                    <Form.Group className="mb-3">
-                      <Form.Label className="fw-bold">
-                        Ingresa tu pista
-                      </Form.Label>
-                      <Form.Control
-                        type="text"
-                        placeholder="Ej: Estrella"
-                        {...registerClue("clue", {
-                          required: "La pista es obligatoria",
-                        })}
-                        isInvalid={!!errorsClue.clue}
-                        disabled={
-                          !isMyTurn || playerState?.clueGiven || !isAlive
-                        }
-                      />
-                      <Form.Control.Feedback type="invalid">
-                        {errorsClue.clue?.message}
-                      </Form.Control.Feedback>
-                    </Form.Group>
-                    <Button
-                      variant="info"
-                      type="submit"
-                      className="w-100 fw-bold"
-                      disabled={!isMyTurn || playerState?.clueGiven || !isAlive}
-                    >
-                      Enviar Pista
-                    </Button>
-                    {!isMyTurn && !playerState?.clueGiven && isAlive && (
-                      <Alert variant="light" className="text-center mt-2">
-                        Espera tu turno para enviar la pista.
-                      </Alert>
-                    )}
-                  </Form>
-                )}
-              </Card.Body>
-            </Card>
-          )}
-          {isImpostorGuessing && gameState.myRole === "IMPOSTOR" && isAlive && (
-            <Card className="shadow border-danger mb-3">
-              <Card.Body>
-                <Card.Title className="text-danger fw-bold">
-                  ¡Adivina para Salvarte! 🤯
-                </Card.Title>
-                {myGuessSubmitted ? (
-                  <Alert variant="warning" className="text-center">
-                    Adivinanza enviada. El destino está echado...
-                  </Alert>
-                ) : (
-                  <Form onSubmit={handleSubmitGuess(onSubmitGuess)}>
-                    <Form.Group className="mb-3">
-                      <Form.Label className="fw-bold">
-                        ¿Cuál crees que es la palabra clave de los Inocentes?
-                      </Form.Label>
-                      <Form.Control
-                        type="text"
-                        placeholder="Ingresa tu adivinanza (Ej: GLOBO)"
-                        {...registerGuess("guess", {
-                          required: "La adivinanza es obligatoria",
-                        })}
-                        isInvalid={!!errorsGuess.guess}
-                        disabled={myGuessSubmitted || !isAlive}
-                      />
-                      <Form.Control.Feedback type="invalid">
-                        {errorsGuess.guess?.message}
-                      </Form.Control.Feedback>
-                    </Form.Group>
-                    <Button
-                      variant="danger"
-                      type="submit"
-                      className="w-100 fw-bold"
-                      disabled={myGuessSubmitted || !isAlive}
-                    >
-                      Adivinar y Salvar Vidas
-                    </Button>
-                  </Form>
-                )}
-              </Card.Body>
-            </Card>
-          )}
-        </Col>
-
-        <Col md={12} lg={8}>
-          <Card className="shadow-lg mb-4">
-            <Card.Header className="bg-light fw-bold text-center">
-              Tablero de Palabras ({gameState.words.length})
-            </Card.Header>
-            <Card.Body>
-              <Row className="g-2">
-                {displayedWords.map((item, index) => (
-                  <Col xs={6} sm={4} lg={3} key={index}>
-                    <div
-                      className={`p-3 border rounded text-center fw-bold shadow-sm h-100 
-                                       ${
-                                         item.isKeyword
-                                           ? "bg-success text-white border-success"
-                                           : "bg-light text-dark border-secondary"
-                                       }`}
-                      style={{ minHeight: "80px" }}
-                    >
-                      {item.word}
-                    </div>
-                  </Col>
-                ))}
-              </Row>
-            </Card.Body>
-          </Card>
-
-          <Card className="shadow-lg">
-            <Card.Header className="bg-secondary text-white fw-bold text-center">
-              {isVoting
-                ? "Vota por el Impostor"
-                : isImpostorChoosing
-                ? "El Impostor Elige Víctima 🔪"
-                : "Pistas de la Ronda Actual"}
-            </Card.Header>
-            <Card.Body>
-              {isVoting ? (
-                <ListGroup>
-                  {gameState.players
-                    ?.filter((p) => p.isAlive)
-                    .map((p) => {
-                      const isTarget = myVoteTarget === p.id;
-                      const isDisabled =
-                        myVoteTarget !== null ||
-                        p.id === user?.id ||
-                        !isVoting ||
-                        !isAlive;
-
-                      return (
-                        <ListGroup.Item
-                          key={p.id}
-                          action
-                          onClick={() => handleVote(p.id)}
-                          active={isTarget}
-                          disabled={isDisabled}
-                          className="d-flex justify-content-between align-items-center"
-                        >
-                          <span className="fw-bold">
-                            {p.name} {p.id === user?.id && "(Tú)"}
-                          </span>
-                          <div>
-                            {p.vote && (
-                              <span className="badge bg-warning text-dark me-2">
-                                Votó
-                              </span>
-                            )}
-                            {isTarget && (
-                              <span className="badge bg-danger">Tu Voto</span>
-                            )}
-                          </div>
-                        </ListGroup.Item>
-                      );
-                    })}
-                  <Alert variant="warning" className="mt-3 text-center">
-                    {myVoteTarget
-                      ? "Voto enviado. Esperando a los demás..."
-                      : "Elige al jugador que crees que es el Impostor."}
-                  </Alert>
-                </ListGroup>
-              ) : isImpostorChoosing ? (
-                <ListGroup>
-                  {gameState.players
-                    ?.filter((p) => p.isAlive && p.id !== user?.id)
-                    .map((p) => {
-                      const isTarget = impostorTarget === p.id;
-                      const isDisabled =
-                        gameState.myRole !== "IMPOSTOR" ||
-                        impostorTarget !== null;
-
-                      return (
-                        <ListGroup.Item
-                          key={p.id}
-                          action
-                          onClick={() => handleImpostorTarget(p.id)}
-                          active={isTarget}
-                          disabled={isDisabled}
-                          className="d-flex justify-content-between align-items-center"
-                        >
-                          <span className="fw-bold">
-                            <HeartFill size={16} className="text-danger me-1" />
-                            {p.name} (Vidas: {p.lives})
-                          </span>
-                          {isTarget && (
-                            <span className="badge bg-danger">Objetivo</span>
-                          )}
-                        </ListGroup.Item>
-                      );
-                    })}
-
-                  <Alert
-                    variant={
-                      gameState.myRole === "IMPOSTOR" ? "danger" : "light"
-                    }
-                    className="mt-3 text-center"
-                  >
-                    {gameState.myRole === "IMPOSTOR"
-                      ? impostorTarget
-                        ? "Objetivo elegido. Esperando la siguiente ronda..."
-                        : "Elige un Inocente para atacar."
-                      : "El Impostor está eligiendo una víctima..."}
-                  </Alert>
-                </ListGroup>
-              ) : isImpostorGuessing ? (
-                <Alert variant="danger" className="text-center fw-bold">
-                  El Impostor tiene su última oportunidad. Esperando el
-                  resultado de la adivinanza...
-                </Alert>
-              ) : (
-                <ListGroup>
-                  {gameState.players
-                    ?.filter((p) => p.clueGiven)
-                    .map((p) => (
-                      <ListGroup.Item
-                        key={p.id}
-                        className="d-flex justify-content-between align-items-center"
-                      >
-                        <span className="fw-bold">
-                          {p.name} ({p.id === user?.id && "Tú"}):
-                        </span>{" "}
-                        <span className="text-primary fw-bold fs-5">
-                          {p.clueGiven}
-                        </span>
-                      </ListGroup.Item>
-                    ))}
-                  {gameState.players?.filter((p) => p.isAlive && !p.clueGiven)
-                    .length > 0 && (
-                    <Alert variant="light" className="mt-2 text-center">
-                      <Spinner animation="grow" size="sm" className="me-2" />
-                      Esperando pistas de{" "}
-                      <span className="fw-bold">
-                        {
-                          gameState.players?.filter(
-                            (p) => p.isAlive && !p.clueGiven
-                          ).length
-                        }
-                      </span>{" "}
-                      jugadores...
-                    </Alert>
-                  )}
-                </ListGroup>
-              )}
-            </Card.Body>
-          </Card>
-        </Col>
-      </Row>
-    </Container>
+            )}
+          </div>
+        )}
+      </motion.div>
+    </div>
   );
 };
 

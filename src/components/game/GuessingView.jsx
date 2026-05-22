@@ -1,107 +1,51 @@
-import {
-  Container,
-  Row,
-  Col,
-  Card,
-  Form,
-  Button,
-  Alert,
-} from "react-bootstrap";
-import { XCircleFill } from "react-bootstrap-icons";
+import { motion } from "framer-motion";
 
-const GuessingView = ({
-  gameState,
-  playerState,
-  isAlive,
-  handleSubmitGuess,
-  onSubmitGuess,
-  registerGuess,
-  errorsGuess,
-}) => {
-  const myUserId = playerState?.id?.toString();
-  const currentTurnId =
-    gameState.turnOrder?.[gameState.currentTurnIndex]?.toString();
-  const isMyTurn = currentTurnId && myUserId && currentTurnId === myUserId;
-  const canSubmit = isMyTurn && !playerState?.guessGiven;
+const GuessingView = ({ gameState, playerState, isAlive, onSubmitGuess }) => {
+  const isMyTurn =
+    gameState.turnOrder?.[gameState.currentTurnIndex] === playerState?.id;
+  const wrongGuesses = gameState.wrongGuesses || [];
 
   return (
-    <Container className="mainSection py-4">
-      <h1 className="text-center mb-4 fw-bold text-warning">
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      className="max-w-3xl mx-auto py-10 px-4"
+    >
+      <h1 className="text-3xl font-black text-center text-yellow-600 mb-6">
         Modo Adivinanza 🧠
       </h1>
-      <Row className="justify-content-center">
-        <Col md={10} lg={8}>
-          <Card className="shadow-lg border-warning rounded-4">
-            <Card.Header className="bg-warning text-dark text-center fw-bold fs-4">
-              ¡Solo Quedan 2! Adivina la Palabra Clave
-            </Card.Header>
-            <Card.Body>
-              <Alert variant="info" className="text-center fw-bold">
-                El juego ha entrado en la fase de adivinanza. Selecciona la
-                palabra clave del tablero para ganar.
-              </Alert>
 
-              <Form
-                onSubmit={handleSubmitGuess(onSubmitGuess)}
-                className="mb-4"
+      <div className="bg-white p-8 rounded-2xl shadow-xl mb-8">
+        <p className="text-center font-bold text-xl mb-6">
+          {isMyTurn && isAlive
+            ? "¡Es tu turno! Toca la palabra secreta:"
+            : "Espera tu turno..."}
+        </p>
+
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          {gameState.words?.map((w, i) => {
+            const isGuessed = wrongGuesses.includes(w.toUpperCase());
+
+            return (
+              <button
+                key={i}
+                disabled={!isMyTurn || !isAlive || isGuessed}
+                onClick={() => onSubmitGuess({ guess: w })}
+                className={`p-4 rounded-xl text-center font-bold transition-all shadow-sm ${
+                  isGuessed
+                    ? "bg-gray-200 text-gray-400 line-through opacity-50 cursor-not-allowed"
+                    : !isMyTurn || !isAlive
+                      ? "bg-gray-100 text-gray-500 cursor-not-allowed"
+                      : "bg-yellow-100 text-yellow-800 border-2 border-transparent hover:border-yellow-400 hover:bg-yellow-500 hover:text-white hover:scale-105 active:scale-95"
+                }`}
               >
-                <Form.Group className="mb-3">
-                  <Form.Label className="fw-bold">
-                    Palabra Clave (Elige una del tablero)
-                  </Form.Label>
-                  <Form.Control
-                    type="text"
-                    placeholder="Ingresa la palabra de la lista..."
-                    {...registerGuess("guess", {
-                      required: "Debes ingresar una palabra.",
-                    })}
-                    isInvalid={!!errorsGuess.guess}
-                    disabled={!canSubmit || !isAlive}
-                  />
-                  <Form.Control.Feedback type="invalid">
-                    {errorsGuess.guess?.message}
-                  </Form.Control.Feedback>
-                </Form.Group>
-                <Button
-                  variant="warning"
-                  type="submit"
-                  className="w-100 fw-bold"
-                  disabled={!canSubmit || !isAlive}
-                >
-                  {
-                    canSubmit
-                      ? "Enviar Adivinanza"
-                      : playerState?.guessGiven
-                      ? "Esperando al Otro Jugador..."
-                      : "Espera tu Turno..."
-                  }
-                </Button>
-                {!isAlive && (
-                  <Alert variant="danger" className="text-center mt-2">
-                    Has sido eliminado.
-                  </Alert>
-                )}
-              </Form>
-
-              <h5 className="text-center fw-bold mb-3">Tablero de Palabras:</h5>
-              <Row className="g-2">
-                {gameState.words.map((word, index) => (
-                  <Col xs={6} sm={4} lg={3} key={index}>
-                    <div
-                      className={`p-3 border rounded text-center fw-bold shadow-sm h-100 
-                                     bg-light text-dark border-secondary`}
-                      style={{ minHeight: "60px" }}
-                    >
-                      {word}
-                    </div>
-                  </Col>
-                ))}
-              </Row>
-            </Card.Body>
-          </Card>
-        </Col>
-      </Row>
-    </Container>
+                {w}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+    </motion.div>
   );
 };
 
