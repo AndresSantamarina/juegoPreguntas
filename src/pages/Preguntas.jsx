@@ -42,16 +42,24 @@ const Preguntas = () => {
         Selecciona un nivel para editar o eliminar
       </h4>
 
-      <div className="flex flex-wrap justify-center gap-3 mb-10">
-        {niveles.map((n) => (
-          <button
-            key={n}
-            onClick={() => navigate(`/preguntas/${n}`)}
-            className={`px-4 py-2 font-bold rounded-lg transition-colors ${nivel === n.toString() ? "bg-blue-600 text-white" : "bg-gray-200 text-gray-700 hover:bg-gray-300"}`}
-          >
-            Nivel {n}
-          </button>
-        ))}
+      <div className="grid grid-cols-3 md:grid-cols-5 gap-3 mb-10">
+        {niveles.map((n) => {
+          const isSelected = nivel === n.toString();
+          return (
+            <button
+              key={n}
+              onClick={() => navigate(`/preguntas/${n}`)}
+              className={`py-3 rounded-xl font-black text-lg transition-all border-b-4 active:border-b-0 active:translate-y-1
+                ${
+                  isSelected
+                    ? "bg-blue-600 text-white border-blue-800 shadow-md"
+                    : "bg-gray-200 text-gray-600 border-gray-300 hover:bg-gray-300"
+                }`}
+            >
+              Nivel {n}
+            </button>
+          );
+        })}
       </div>
 
       {mostrarLoader ? (

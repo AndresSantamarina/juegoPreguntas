@@ -21,37 +21,50 @@ function App() {
   return (
     <AuthProvider>
       <BrowserRouter>
-        <MenuNav />
-        <Routes>
-          <Route exact path="/" element={<Inicio></Inicio>}></Route>
-          <Route path="/register" element={<Register />} />
-          <Route path="/login" element={<LoginForm />} />
-          <Route exact path="/agregar" element={<Agregar></Agregar>}></Route>
-          <Route exact path="/ruleta" element={<Ruleta />} />
-          <Route
-            exact
-            path="/preguntas"
-            element={<Preguntas></Preguntas>}
-          ></Route>
-          <Route
-            exact
-            path="/preguntas/:nivel"
-            element={<Preguntas></Preguntas>}
-          ></Route>
-          <Route
-            exact
-            path="/preguntas/editar/:id"
-            element={<Editar></Editar>}
-          ></Route>
-          <Route exact path="/jugar" element={<Jugar></Jugar>}></Route>
-          <Route exact path="/jugar/:nivel" element={<Jugar></Jugar>}></Route>
-          <Route path="/impostor" element={<ImpostorLayout />}>
-            <Route index element={<ImpostorHome />} />
-            <Route path="room/:roomId" element={<ImpostorGame />} />
-          </Route>
-          <Route exact path="*" element={<Error404></Error404>}></Route>
-        </Routes>
-        <Footer />
+        <div className="flex flex-col min-h-screen bg-gray-50">
+          <MenuNav />
+          <main className="flex-grow">
+            <Routes>
+              <Route exact path="/" element={<Inicio></Inicio>}></Route>
+              <Route path="/register" element={<Register />} />
+              <Route path="/login" element={<LoginForm />} />
+              <Route
+                exact
+                path="/agregar"
+                element={<Agregar></Agregar>}
+              ></Route>
+              <Route exact path="/ruleta" element={<Ruleta />} />
+              <Route
+                exact
+                path="/preguntas"
+                element={<Preguntas></Preguntas>}
+              ></Route>
+              <Route
+                exact
+                path="/preguntas/:nivel"
+                element={<Preguntas></Preguntas>}
+              ></Route>
+              <Route
+                exact
+                path="/preguntas/editar/:id"
+                element={<Editar></Editar>}
+              ></Route>
+              <Route exact path="/jugar" element={<Jugar></Jugar>}></Route>
+              <Route
+                exact
+                path="/jugar/:nivel"
+                element={<Jugar></Jugar>}
+              ></Route>
+              <Route path="/impostor" element={<ImpostorLayout />}>
+                <Route index element={<ImpostorHome />} />
+                <Route path="room/:roomId" element={<ImpostorGame />} />
+              </Route>
+              <Route exact path="*" element={<Error404></Error404>}></Route>
+            </Routes>
+          </main>
+          <Footer />
+          <Toaster position="bottom-center" />
+        </div>
       </BrowserRouter>
     </AuthProvider>
   );
